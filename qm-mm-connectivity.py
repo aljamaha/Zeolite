@@ -3,7 +3,7 @@ import sys
 from molmod import *	#further info are here: http://molmod.github.io/molmod/tutorial/install.html
 
 '''
-Objective: convert an xyz coordinates to qmmm molecule format (usign neighbors)
+Objective: convert an xyz coordinates to qmmm molecule format
 Input format: python qm-mm-connectivity <xyz coordinates> <# of qm atoms>
 Output: $molecule section in qm-mm
 '''
@@ -13,7 +13,7 @@ if len(sys.argv) !=3:
 	sys.stderr.write("Wrong input format\nInput format: python qm-mm-connectivity.py <xyz file> <#of qm atoms>\n")
 	quit()
 
-qm_atoms = range(0,int(sys.argv[2]))	#number of qm atoms based on input file
+qm_atoms = range(0,int(sys.argv[2]))	#number of qm atoms
 
 mol = Molecule.from_file(sys.argv[1])	#reads the input <xyz coordinates>
 mol.set_default_masses()		#reads the mass of each atom in xyz input
@@ -30,8 +30,8 @@ for i in mol.graph.neighbors:
         	        if not indexes[j] in qm_atoms:
                 	   link_O.append(indexes[j])
 
-'Identify Si atoms attached to link_O in MM region (they will have a reduced charge)'
-'[Si atoms connected to linking O atoms (atom type -23/-22/-21 depending on number of linking O atoms the Si atom is connected to]'
+'Identify Si atoms attached to link_O in MM region'
+'[Si atoms connected to linking O atoms (atom type -23/-22/-21 depending on number of linking O atoms the Si atom is connected to)]'
 link_Si = []
 for i in mol.graph.neighbors:
 	'loop over all atoms in xyz input file'
@@ -57,6 +57,7 @@ for i in mol.graph.neighbors:
 	elif mol.symbols[i] == 'H':
 		type = -3
 
+	'print results'
 	print("%s\t % f\t % f\t % f\t % i\t %i\t %i\t %i\t %i\t" % (str(mol.symbols[i]), mol.coordinates[i][0]/angstrom, mol.coordinates[i][1]/angstrom, mol.coordinates[i][2]/angstrom, type, indexes[0]+1 if len(indexes) > 0 else 0, indexes[1]+1 if len(indexes) > 1 else 0, indexes[2]+1 if len(indexes) > 2 else 0, indexes[3]+1 if len(indexes) > 3 else 0))
 
 
