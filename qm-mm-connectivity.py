@@ -2,33 +2,26 @@
 import sys
 from molmod import *
 
-'input format: python qm-mm-connectivity'
+'''
+Objective: convert an xyz coordinates to qmmm molecule format (usign neighbors)
+Input format: python qm-mm-connectivity <xyz coordinates> <# of qm atoms>
+Output: $molecule section in qm-mm
+'''
 
-'raise an error when less than two arguments are provided'
 if len(sys.argv) !=3:
-  sys.stderr.write(sys.argv[0]+"\n")
-  sys.stderr.write("*************************************************************************************************** \n")
-  sys.stderr.write("Add forcefield atom types and connectivity to XYZ coordinates for zeolite QM/MM calculations with Q-Chem.\n\n")
-  sys.stderr.write("Usage: \n")
-  sys.stderr.write("qmmm-connectivity-standalone.py <XYZ file> <number of QM atoms (must be at the top of the XYZ file)>\n")
-  sys.stderr.write("*************************************************************************************************** \n")
-  quit()
+	'raise an error when less than two arguments are provided'
+	sys.stderr.write("Need two arguments in the input [<xyz format> <#of qm atoms>]\n")
+	quit()
 
-mol = Molecule.from_file(sys.argv[1])
-
-mol.set_default_masses()
-
+mol = Molecule.from_file(sys.argv[1])	#reads the input <xyz coordinates>
+mol.set_default_masses()		#reads the mass of each atom in xyz input
 assert(mol.graph is None)
-
 mol.set_default_graph()
+qm_atoms = range(0,int(sys.argv[2]))	#number of qm atoms based on input file
 
-qm_atoms = range(0,int(sys.argv[2]))
-
-link_O = []
-
-print(mol.graph.neighbors)
-
-for i, ns in mol.graph.neighbors.iteritems():
+link_O = []				#O-atoms connected to qm atoms
+#for i, ns in mol.graph.neighbors.iteritems():
+for 
     if i in qm_atoms:
         indexes = [n for n in ns]
         for j in range(0,len(indexes)):
