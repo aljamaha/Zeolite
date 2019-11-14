@@ -20,7 +20,7 @@ mol.set_default_masses()		#reads the mass of each atom in xyz input
 assert(mol.graph is None)
 mol.set_default_graph()			#derive a molecular graph based on geometry
 
-'Identiy O-atoms (in MM region) connected to qm atoms'
+'Identiy O-atoms (in MM region) connected to qm atoms [replaced by H for the QM calculation]'
 link_O = []			
 for i in mol.graph.neighbors:
 	'loop over all atoms in xyz input file'
@@ -31,6 +31,7 @@ for i in mol.graph.neighbors:
                 	   link_O.append(indexes[j])
 
 'Identify Si atoms attached to link_O in MM region (they will have a reduced charge)'
+'[Si atoms connected to linking O atoms (atom type -23/-22/-21 depending on number of linking O atoms the Si atom is connected to]'
 link_Si = []
 for i in mol.graph.neighbors:
 	'loop over all atoms in xyz input file'
