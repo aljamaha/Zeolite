@@ -12,6 +12,7 @@ basis    = '6-31+G**'	#basis set
 job_type = 'opt'
 exchange = 'omegab97x-d'
 fixed_atoms = '1400'
+qm_atoms    = '14'
 
 'General Inputs'
 cwd       = os.getcwd()
@@ -21,6 +22,7 @@ struc_dir = cwd+'/structures'
 calc = [111,112,113]
 
 def rm_section():
+	'writes details of rm section'
 	g = open(cwd+'/text-rm.txt','r')
 	text_rm = g.read()
 	g.close()
@@ -30,7 +32,17 @@ def rm_section():
 	f.write('basis'+'\t'+basis+'\n$end\n')
 	f.write('AIMD_FIXED_ATOMS\t'+fixed_atoms)
 	f.write(text_rm)
-	f.write('$end\n')
+	f.write('$end\n\n')
+
+def qm_atoms_section(qm_atoms):
+	'writes details of qm_atoms section'
+	f.write('$qm_atoms\n1:'+qm_atoms+'\n$end\n\n')
+	
+def comments_section():
+	'writes details of the comment section'
+	g = open(cwd+'/text-comments.txt','r')
+	f.write(g.read())
+	g.close()
 
 'run calculations'
 for i in calc:
@@ -46,11 +58,7 @@ for i in calc:
 	'''writing opt.in'''
 	f = open('opt.in','w')
 	rm_section()
-	
-	$qm_atoms
-1:32
-$end   
-
-
+	qm_atoms_section(qm_atoms)
+	comments_section()
 
 	f.close()
