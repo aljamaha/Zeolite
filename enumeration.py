@@ -29,7 +29,7 @@ def neighbor_list(xyz_file):
 	'''
 	mol = Molecule.from_file(xyz_file)
 	mol.set_default_masses()
-	mol.set_default_graph()	
+	mol.set_default_graph()
 	return mol.graph.neighbors
 
 def count_elements(atoms):
@@ -47,7 +47,7 @@ def count_elements(atoms):
 
 def print_structure(atoms, index, N, reference):
 	'''
-	Inputs:  
+	Inputs:
 		atoms: ase atoms object
 		index: the index of the previous structure
 		N    : N, NN, or NNN
@@ -59,7 +59,7 @@ def print_structure(atoms, index, N, reference):
 	'''
 	index += 1
 	os.chdir(struc_dir), atoms.write(str(index)+'.traj')
-	data[str(index)+'.traj'] = count_elements(atoms) 
+	data[str(index)+'.traj'] = count_elements(atoms)
 	data[str(index)+'.traj']['N'] = N
 	data[str(index)+'.traj']['reference'] = reference
 	if 'H' not in list(data[str(index)+'.traj']):
@@ -68,9 +68,9 @@ def print_structure(atoms, index, N, reference):
 
 	return index
 
-def add_H(zeolite, O1, H_num, O2=0):	
+def add_H(zeolite, O1, H_num, O2=0):
 	'''
-	Inputs: 
+	Inputs:
 		zeolite: structure of the zeolite
 		O      : index of first O atom neighboring Al
 		H_num  : number of H atoms in the structure
@@ -84,18 +84,19 @@ def add_H(zeolite, O1, H_num, O2=0):
 		zeolite_copy.append(Atom('H',(zeolite[O2].position[0],zeolite[O2].position[1],zeolite[O2].position[2]+1)))
 	return zeolite_copy
 
-def add_Pd(zeolite, ads, H_position):
+def add_Pd(zeolite, ads, position):
 	'''
 	Inputs:
 		zeolite   : structure of zeolite
 		ads       : metal structure to be added
-		H_position: xyz coordinates of 
+		H_position: xyz coordinates of
 	Outputs:
 		structure of zeolite with metal adsorbed
 	'''
 	ads = 'Pd'
 	zeolite_copy = deepcopy(zeolite)
-	zeolite_copy.append(Atom(ads,(H_position[0], H_position[1], H_position[2]+1)))
+	#zeolite_copy.append(Atom(ads,(position[0], position[1], position[2]+2)))
+	zeolite_copy.append(Atom(ads,(4.4,5,10)))
 	return zeolite_copy
 
 def O_neighbor_indicies(atoms):
@@ -131,6 +132,23 @@ def identify_repeat_structures(index):
 					print('Same structure! ', str(i)+'\t'+str(j))
 					output.append([i,j])
 	return output
+
+def Al_Al_distance(atoms):
+	'''
+	Inputs: atoms object
+	Output: Al-Al pair distance
+	'''
+	n_Al, Al_index = 0,[] #number of Al atoms, index of Al atoms
+	for atom in atoms:
+		if atom.symbol == 'Al':
+			n_Al += 1
+			Al_index.append(atom.index)
+	if n_Al == 2:
+		distance = atoms.get_distance(Al_index[0],Al_index[1])
+	else:
+		distance = 0
+
+	return distance
 
 'substitute Si with Al'
 zeolite[Al].symbol = 'Al'
@@ -230,7 +248,7 @@ for item in zeolite_bare:
 			for j in O_index[1]:
 				zeolite_copy = add_H(atoms, i, 2, j)
 				index = print_structure(zeolite_copy, index, N=data[item]['N'], reference=item)
-	
+
 '''Writing structures of metal modified zeolites'''
 no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
 
@@ -263,34 +281,50 @@ for structure in no_metal_zeolite:
 							index = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'])
 							break
 
+'''Space surrounding metal zeolites'''
 
-#for item in data:
-#	print(item, data[item])
+metal_zeolites = {} #store zeolites with metals
+
+for item in data:
+	if 'Pd' in data[item].keys():
+		atoms = io.read(struc_dir+'/'+item)
+		for atom in atoms:
+			if atom.symbol == 'Pd':
+				metal_zeolites[item] = atom.index
+				break
 
 '''
 To do ...
-* print further details beside the name in the .traj
-* optimal way of adding H/Pd as an adsorbate
-* How would things change if Pd had a +1 oxidation state?
-* change adsorbate name from Pd to a variable (to accomodate different oxidation states)
-* how many total calculations are needed?
-* verify neighbouring list always has atoms with 4 or 2 neighbors
-   [check every tested Si has 4 neighbors and every tested O has 2 neighbors]
-   [when I add a periodic image, am I repeated myself or identifying new combinations?]
-   [or check when I use CHA structure by Jeroen]
-* when we have 2 Al, there should be structures with 1 Al, so a M+1 could compensate
-* change inputs dictionary
-* add_Pd must be updated to reflect adsorption not on H
-* adding metal to oxidaiton +2 is not the best way here
+* enough space to accommodate for NO?
+* when I add a periodic image, am I repeated myself or identifying new combinations?]
+* adding metal to oxidaiton +2 adds only one metal on one of the two Al sites
+* am I adding Pd to the optimal site?
 
+Later ...
+* How would things change if Pd had a +1 oxidation state? [including when there is only one Al]
+* change inputs dictionary
+* change adsorbate name from Pd to a variable (to accomodate different oxidation states)
+* am I missing other Pd oxidation states?
 
 Questions:
 * Do metals repalce Al?
 * How can I verify two structures are not symmetric?
-* How to optimize placment of H/Pd atoms?
 * Should I add a criteria for distance?
 * Andrew Gettson [in Ford] did work on Al distribution on chabasize
-* am I missing other Pd oxidation states?
 
-identify_repeat_structures(index):
+*** Other parts of the code: ***
+identify_repeat_structures(index)d = []
+for i in range(1,index):
+	d.append(Al_Al_distance(io.read(struc_dir+'/'+str(i)+'.traj')))
+
+Finds the distance between metal atoms and nearby elements
+d = {}
+for item in metal_zeolites:
+	atoms = io.read(struc_dir+'/'+item)
+	atoms.write('tmp.xyz')
+	N_list = neighbor_list('tmp.xyz')	#dict of neighbors list
+	os.system('rm tmp.xyz')
+	d[item] = []
+	for N in N_list[metal_zeolites[item]]:
+		d[item].append(atoms.get_distance(metal_zeolites[item],N))
 '''
