@@ -1,26 +1,24 @@
 #!/Users/hassanaljama/opt/anaconda3/bin/python
 
 import os
+from ase import io
 
 '''
-Running calculations on selected strucutres
+Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-details  = 'B3LYP' 	#unique details about the calculations
-basis    = '6-31+G**'	#basis set
+calc = [111] 		#identify structures [under structures folder]
+basis    = 'def2-sv(p)'	#basis set [def2-sv(p) or def2-tzvpd]
 job_type = 'opt'
 exchange = 'omegab97x-d'
 fixed_atoms = '1400'
 qm_atoms    = '14'
-n_atoms     = '1433'
 
-'General Inputs'
+'General Inputs (do not change)'
 cwd       = os.getcwd()
 struc_dir = cwd+'/structures'
-
-'identify structures to do calculations on'
-calc = [111]
+details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #naming dir (uniqueness)
 
 def rm_section():
 	'writes details of rm section'
@@ -61,16 +59,26 @@ def opt_section(qm_atoms, n_atom):
 def molecules_section():
 	'writes details of the #molecule section'
 	f.write('$molecule\n0  1\n')
+	g = open('tmp', 'r')
+	f.write(g.read()+'\n')
+	os.system('rm tmp')
 	f.write('$end')
 
 'run calculations'
 for i in calc:
 	i = str(i)
 	os.chdir(cwd+'/calculations')
-	if os.path.exists(i+'-'+details) == 'False':
-		os.system('mkdir '+i+'-'+details)
+	os.system('echo $PWD')
+	#if os.path.exists(cwd+'/'+struc_dir+'/'+i+'-'+details) is 'True':
+		#print('done .. ')
+	os.system('mkdir '+i+'-'+details)
 	os.chdir(i+'-'+details)
 	os.system('cp '+struc_dir+'/'+i+'.traj input.traj')
+	atoms = io.read('input.traj')
+	n_atoms = len(atoms)
+	atoms.write('input.xyz')
+	os.system('cp '+cwd+'/qm-mm-connectivity.py .')
+	os.system('python qm-mm-connectivity.py input.xyz '+qm_atoms+' > tmp')
 
 	'''writing opt.in'''
 	f = open('opt.in','w')
