@@ -68,10 +68,8 @@ def molecules_section():
 for i in calc:
 	i = str(i)
 	os.chdir(cwd+'/calculations')
-	os.system('echo $PWD')
-	#if os.path.exists(cwd+'/'+struc_dir+'/'+i+'-'+details) is 'True':
-		#print('done .. ')
-	os.system('mkdir '+i+'-'+details)
+	if os.path.exists(i+'-'+details) is not True:
+		os.system('mkdir '+i+'-'+details)
 	os.chdir(i+'-'+details)
 	os.system('cp '+struc_dir+'/'+i+'.traj input.traj')
 	atoms = io.read('input.traj')
@@ -89,5 +87,5 @@ for i in calc:
 	ff_parameters()
 	opt_section(int(qm_atoms), n_atoms)
 	molecules_section()
-	
+
 	f.close()
