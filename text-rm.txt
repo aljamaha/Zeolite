@@ -1,0 +1,20 @@
+$rem   
+jobtype 	opt 		#optimization calc  
+geom_opt_coords 0                 
+max_scf_cycles  250 		#max scf cycles        
+geom_opt_max_cycles   	500   
+exchange   omegab97x-d          #Exchange
+QM_MM_INTERFACE Zeolite         
+force_field   	charmm27        #FF
+user_connect   	true      
+symmetry    	off         
+sym_ignore   	true         
+print_input   	true         
+qmmm_print   	false		#Controls printing output
+qm_mm   	true		#turn on Q-Chem/Charm interface         
+qmmm_full_hessian   false       #evaluates the whole hessian
+mem_total   	3600         
+mem_static   	450         
+AIMD_FIXED_ATOMS 1401		#total fixed atoms?	
+geom_opt_dmax   80
+pop_mulliken false
