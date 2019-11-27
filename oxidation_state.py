@@ -1,3 +1,5 @@
+import sys
+
 oxidation_state = {'Pd':[0,2,4],'O':[-2]} #oxidation state dictionary
 composition     = {}
 
@@ -18,6 +20,8 @@ for comp in composition:
 for element in oxidation_state:
 	if element not in ['O','H']:
 		composition[element] = oxidation_state[element]
+
+print(composition)
 
 print('Oxidation States = 0,+1+,2:')
 'oxidation states in 0,+1,+2'
