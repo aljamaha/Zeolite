@@ -4,6 +4,7 @@ from ase import io, Atom
 import os
 from copy import deepcopy
 from molmod import *
+import pickle
 
 '''
 Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate adsorption sites
@@ -160,6 +161,8 @@ zeolite.write('tmp.xyz')
 N_list = neighbor_list('tmp.xyz')	#dict of neighbors list
 os.system('rm tmp.xyz')
 
+pickle.dump(N_list, open("save.p", "wb"))
+
 '''Building Si and O N, NN, and NNN'''
 
 'Identify N (Si and O)'
@@ -230,17 +233,11 @@ for item in neighbors['Si']['NN']:
 	zeolite_copy[item].symbol = 'Al'
 	index = print_structure(zeolite_copy, index, N='NN', reference=str(index+1)+'.traj')
 
-print('NN = ', index-1) 
-
 '2 Al [NNN]'
 for item in neighbors['Si']['NNN']:
 	zeolite_copy = deepcopy(zeolite)
 	zeolite_copy[item].symbol = 'Al'
 	index = print_structure(zeolite_copy, index, N='NNN', reference=str(index+1)+'.traj')
-
-print('NNN = ', index-10)
-
-exit()
 
 '''Writing structures of H-zeolites'''
 zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
