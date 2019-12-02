@@ -3,7 +3,7 @@
 from ase import io
 import pickle
 from functions import identify_N
-
+import os
 
 def qm_mm_region(data,traj, struc_dir, cwd, N_list):
 	'''
@@ -33,14 +33,34 @@ def qm_mm_region(data,traj, struc_dir, cwd, N_list):
 	
 	'add Si/O elements to qm region'
 	for item in neighbors:
-		if neighbors[item]['N'] in data[traj]['qm_region']:
-			continue
-		else:
-			data[traj]['qm_region'].append(neighbors[item]['N'])
+		for i in neighbors[item]['N']:
+			if i in data[traj]['qm_region']:
+				continue
+			else:
+				data[traj]['qm_region'].append(i)
 
+	'identify O atoms connected to two Si in the qm region, not accounted for yet'
+	'''
+	for item in N_list:
+		if set(N_list[item]) <= set(data[traj]['qm_region']):
+			if item in data[traj]['qm_region']:
+				continue
+			else:
+				data[traj]['qm_region'].append(item)
+	'''
 	return data
 	
 data = {}
+struc_dir = 'structures/'
+cwd = os.getcwd()
 N_list    = pickle.load( open( "save.p", "rb" ) )
-qm_mm_region(data,traj, struc_dir, cwd, N_list):
 
+for i in range(1,28):
+	traj = str(i)+'.traj'
+	data[str(i)+'.traj'] = {}
+	data = qm_mm_region(data,traj, struc_dir, cwd, N_list)
+
+
+print(data)
+for item in data:
+	print(len(data[item]['qm_region']))
