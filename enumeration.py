@@ -10,10 +10,8 @@ Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate 
 '''
 
 'Inputs'
-zeolite = io.read('CHA-T696.xyz')	#Zeolite structure
-Al  	= 0			#Si to be replaced by Al
-
-zeolite.write('CHA-T696.xyz')
+zeolite = io.read('pd.xyz')	#Zeolite structure
+Al  	= 0				#Si to be replaced by Al
 
 exit()
 
