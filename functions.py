@@ -6,25 +6,6 @@ from copy import deepcopy
 from molmod import *
 import pickle
 
-'''
-Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate adsorption sites
-'''
-
-'Inputs'
-zeolite = io.read('CHA-T696.xyz')	#Zeolite structure
-#zeolite = io.read('CHA.cif')
-#Al  	= 101				#Si to be replaced by Al
-Al	= 0
-
-'Inputs (dont change)'
-cwd  	= os.getcwd()
-struc_dir = cwd+'/structures'	#dir to store structures
-index 	= 0			#index of the structure
-data 	= {}			#store details of each structure
-neighbors = {}			#storing neighbors for Si and O
-neighbors['O']  = {'N':[],'NN':[],'NNN':[]}
-neighbors['Si'] = {'N':[],'NN':[],'NNN':[]}
-
 def neighbor_list(xyz_file):
 	'''
 	Inputs:  xyz coordinates
@@ -153,22 +134,11 @@ def Al_Al_distance(atoms):
 
 	return distance
 
-'substitute Si with Al'
-zeolite[Al].symbol = 'Al'
-
-'neighbour list'
-zeolite.write('tmp.xyz')
-N_list = neighbor_list('tmp.xyz')	#dict of neighbors list
-os.system('rm tmp.xyz')
-
-pickle.dump(N_list, open("save.p", "wb"))
-
-'''Building Si and O N, NN, and NNN'''
 def identify_N(N_list_Al, N_list, neighbors, Al):
 	'''
 	Identify Al neighboring Si and O
 	Inputs :
-		N_list_Al : neighbor list of Al
+		N_list[Al]: neighbor list of Al
 		N_list    : dictionary of the neighboring list of all atoms
 		neighbors : dictionary of neighbors (Si/O)[N,NN,NNN]
 		Al 	  : element number of first Al
@@ -188,16 +158,14 @@ def identify_N(N_list_Al, N_list, neighbors, Al):
 				neighbors['Si']['N'].append(neighbor)
 	return neighbors
 
-neighbors = identify_N(N_list[Al],N_list, neighbors, Al)
-
 def identify_NN_O(neighbors, N_list ):
 	'''
 	identifies Al next neighbor O
-	inputs :	
+	inputs :
 		N_list    : dictionary of the neighboring list of all atoms
 		neighbors : dictionary of neighbors (Si/O)[N,NN,NNN]
 	outputs:
-		neighbors: Si and O next neighboring Al
+		neighbors: O next neighboring Al
 	'''
 	for item in neighbors['Si']['N']:
 		for neighbor in N_list[item]:
@@ -209,17 +177,14 @@ def identify_NN_O(neighbors, N_list ):
 				neighbors['O']['NN'].append(neighbor)
 	return neighbors
 
-neighbors = identify_NN_O(neighbors, N_list)
-
-'Identify NN Si'
 def identify_NN_Si(neighbors, N_list):
-	'''	
+	'''
 	identifies Al next neighbor Si
-	inputs :	
+	inputs :
 		N_list    : dictionary of the neighboring list of all atoms
 		neighbors : dictionary of neighbors (Si/O)[N,NN,NNN]
 	outputs:
-		neighbors: Si and O next neighboring Al
+		neighbors: Si next neighboring Al
 	'''
 	for item in neighbors['O']['NN']:
 		for neighbor in N_list[item]:
@@ -231,12 +196,10 @@ def identify_NN_Si(neighbors, N_list):
 				neighbors['Si']['NN'].append(neighbor)
 	return neighbors
 
-neighbors = identify_NN_Si(neighbors, N_list)
-
 def identify_NNN_O(N_list, neighbors):
 	'''
 	identifies Al next next neighbor O
-	inputs :	
+	inputs :
 		N_list    : dictionary of the neighboring list of all atoms
 		neighbors : dictionary of neighbors (Si/O)[N,NN,NNN]
 	outputs:
@@ -254,12 +217,10 @@ def identify_NNN_O(N_list, neighbors):
 				neighbors['O']['NNN'].append(neighbor)
 	return neighbors
 
-neighbors = identify_NNN_O(N_list, neighbors)
-
 def identify_NNN_Si(N_list, neighbors):
 	'''
 	identifies Al next next neighbor O
-	inputs :	
+	inputs :
 		N_list    : dictionary of the neighboring list of all atoms
 		neighbors : dictionary of neighbors (Si/O)[N,NN,NNN]
 	outputs:
@@ -277,11 +238,14 @@ def identify_NNN_Si(N_list, neighbors):
 				neighbors['Si']['NNN'].append(neighbor)
 	return neighbors
 
-neighbors = identify_NNN_Si(N_list, neighbors)
+'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 
 '''Writing structures [one Al, two Al [NN and NNN]]'''
 'single Al'
 index = print_structure(zeolite, index, N='N', reference=str(index+1)+'.traj')
+
 
 '2 Al [NN]'
 for item in neighbors['Si']['NN']:
@@ -294,7 +258,6 @@ for item in neighbors['Si']['NNN']:
 	zeolite_copy = deepcopy(zeolite)
 	zeolite_copy[item].symbol = 'Al'
 	index = print_structure(zeolite_copy, index, N='NNN', reference=str(index+1)+'.traj')
-
 '''Writing structures of H-zeolites'''
 zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
 
@@ -357,37 +320,3 @@ for item in data:
 				metal_zeolites[item] = atom.index
 				break
 
-
-'''
-To do ...
-* enough space to accommodate for NO?
-* when I add a periodic image, am I repeated myself or identifying new combinations?]
-* adding metal to oxidaiton +2 adds only one metal on one of the two Al sites
-* am I adding Pd to the optimal site?
-* am I missing other Pd oxidation states?
-
-Later ...
-* change inputs dictionary
-* change adsorbate name from Pd to a variable (to accomodate different oxidation states)
-
-Questions:
-* How can I verify two structures are not symmetric?
-* Should I add a criteria for distance?
-* Andrew Gettson [in Ford] did work on Al distribution on chabasize
-
-*** Other parts of the code: ***
-identify_repeat_structures(index)d = []
-for i in range(1,index):
-	d.append(Al_Al_distance(io.read(struc_dir+'/'+str(i)+'.traj')))
-
-Finds the distance between metal atoms and nearby elements
-d = {}
-for item in metal_zeolites:
-	atoms = io.read(struc_dir+'/'+item)
-	atoms.write('tmp.xyz')
-	N_list = neighbor_list('tmp.xyz')	#dict of neighbors list
-	os.system('rm tmp.xyz')
-	d[item] = []
-	for N in N_list[metal_zeolites[item]]:
-		d[item].append(atoms.get_distance(metal_zeolites[item],N))
-'''
