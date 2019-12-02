@@ -29,16 +29,17 @@ def count_elements(atoms):
 		structure_data[item] = list(atoms.symbols).count(item)
 	return structure_data
 
-def print_structure(atoms, index, N, reference):
+def print_structure(atoms, index, N, reference, struc_dir, data):
 	'''
 	Inputs:
 		atoms: ase atoms object
 		index: the index of the previous structure
 		N    : N, NN, or NNN
 		reference: original structure without modification
+		struc_dir: directory to store structures
 	Outputs:
 		prints the traj file in struc_dir folder
-		returns the index of the traj file in struc_dir
+		returns the index of the traj file in struc_dir and data dictionary
 		appends details of the structure to data dictionary
 	'''
 	index += 1
@@ -50,7 +51,7 @@ def print_structure(atoms, index, N, reference):
 		data[str(index)+'.traj']['H'] = 0
 	data[str(index)+'.traj']['oxidation']= int(data[str(index)+'.traj']['Al']) - int(data[str(index)+'.traj']['H'])
 
-	return index
+	return index, data
 
 def add_H(zeolite, O1, H_num, O2=0):
 	'''
@@ -83,9 +84,9 @@ def add_Pd(zeolite, ads, position):
 	#zeolite_copy.append(Atom(ads,(4.4,5,10)))
 	return zeolite_copy
 
-def O_neighbor_indicies(atoms):
+def O_neighbor_indicies(atoms, N_list):
 	'''
-	Inputs:  ase atoms object
+	Inputs:  ase atoms object, neighbor list (N_list)
 	Outputs: dictionary of O atoms neighboring Al[0] and Al[1]
 	'''
 	Al_index, O_index = [],{}
@@ -237,86 +238,4 @@ def identify_NNN_Si(N_list, neighbors):
 			else:
 				neighbors['Si']['NNN'].append(neighbor)
 	return neighbors
-
-'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-
-'''Writing structures [one Al, two Al [NN and NNN]]'''
-'single Al'
-index = print_structure(zeolite, index, N='N', reference=str(index+1)+'.traj')
-
-
-'2 Al [NN]'
-for item in neighbors['Si']['NN']:
-	zeolite_copy = deepcopy(zeolite)
-	zeolite_copy[item].symbol = 'Al'
-	index = print_structure(zeolite_copy, index, N='NN', reference=str(index+1)+'.traj')
-
-'2 Al [NNN]'
-for item in neighbors['Si']['NNN']:
-	zeolite_copy = deepcopy(zeolite)
-	zeolite_copy[item].symbol = 'Al'
-	index = print_structure(zeolite_copy, index, N='NNN', reference=str(index+1)+'.traj')
-'''Writing structures of H-zeolites'''
-zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
-
-for item in zeolite_bare:
-	atoms = io.read(struc_dir+'/'+data[item]['reference'])
-	if data[item]['Al'] == 1:
-		for O in neighbors['O']['N']:
-			zeolite_copy = add_H(atoms, O, 1)
-			index = print_structure(zeolite_copy, index, N='N', reference=item)
-	else:
-		O_index = O_neighbor_indicies(atoms)
-		for i in O_index[0]:
-			for j in O_index[1]:
-				zeolite_copy = add_H(atoms, i, 2, j)
-				index = print_structure(zeolite_copy, index, N=data[item]['N'], reference=item)
-
-'''Writing structures of metal modified zeolites'''
-no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
-
-#### this needs to change####
-inputs = {'PdO': [-2, 0, 2], 'Pd2O': [-2, 2, 6], 'PdO2': [-4, -2, 0], 'Pd2O2': [-4, 0, 4], 'Pd': [0, 2, 4]}
-ox1, ox2 = 0,0
-for structure in no_metal_zeolite:
-	if data[structure]['oxidation'] == 0:
-		'oxidation state of zero'
-		for comp in inputs:
-			for ox in inputs[comp]:
-				if ox == 0:
-					atoms = io.read(struc_dir+'/'+structure)
-					for atom in atoms:
-						if atom.symbol == 'H':
-							zeolite_copy = add_Pd(atoms, comp, atom.position)
-							index = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'])
-	elif data[structure]['oxidation'] == 1:
-		'to be added of +1'
-		continue
-	elif data[structure]['oxidation'] == 2:
-		'oxidation state of +2'
-		for comp in inputs:
-			for ox in inputs[comp]:
-				if ox == 2:
-					atoms = io.read(struc_dir+'/'+structure)
-					for atom in atoms:
-						if atom.symbol == 'Al':
-							
-							zeolite_copy = add_Pd(atoms, comp, atom.position)
-							index = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'])
-							break
-
-
-'''Space surrounding metal zeolites'''
-
-metal_zeolites = {} #store zeolites with metals
-
-for item in data:
-	if 'Pd' in data[item].keys():
-		atoms = io.read(struc_dir+'/'+item)
-		for atom in atoms:
-			if atom.symbol == 'Pd':
-				metal_zeolites[item] = atom.index
-				break
 
