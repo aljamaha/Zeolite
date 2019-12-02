@@ -63,19 +63,7 @@ for item in neighbors['Si']['NNN']:
 
 '''Writing structures of H-zeolites'''
 zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
-
-for item in zeolite_bare:
-	atoms = io.read(struc_dir+'/'+data[item]['reference'])
-	if data[item]['Al'] == 1:
-		for O in neighbors['O']['N']:
-			zeolite_copy = add_H(atoms, O, 1)
-			index, data = print_structure(zeolite_copy, index, 'N', item,struc_dir, data)
-	else:
-		O_index = O_neighbor_indicies(atoms, N_list)
-		for i in O_index[0]:
-			for j in O_index[1]:
-				zeolite_copy = add_H(atoms, i, 2, j)
-				index, data = print_structure(zeolite_copy, index, data[item]['N'], item,struc_dir, data)
+index, data = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index)
 
 '''Writing structures of metal modified zeolites'''
 no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
@@ -122,7 +110,6 @@ for item in data:
 			if atom.symbol == 'Pd':
 				metal_zeolites[item] = atom.index
 				break
-
 
 '''
 To do ...

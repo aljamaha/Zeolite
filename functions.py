@@ -239,3 +239,29 @@ def identify_NNN_Si(N_list, neighbors):
 				neighbors['Si']['NNN'].append(neighbor)
 	return neighbors
 
+zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
+
+def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index):
+	'''
+	write structures of H-zeolites
+	Inputs:
+		zeolite_bare: list of zeolites without H or M
+		struc_dir   : directory of structures
+		data	    : dictionary of the data
+		neighbors   : dictionary of the neighboring Si/Al
+		index       : index of previous structure
+	'''
+	for item in zeolite_bare:
+		atoms = io.read(struc_dir+'/'+data[item]['reference'])
+		if data[item]['Al'] == 1:
+			for O in neighbors['O']['N']:
+				zeolite_copy = add_H(atoms, O, 1)
+				index, data = print_structure(zeolite_copy, index, 'N', item,struc_dir, data)
+		else:
+			O_index = O_neighbor_indicies(atoms, N_list)
+			for i in O_index[0]:
+				for j in O_index[1]:
+					zeolite_copy = add_H(atoms, i, 2, j)
+					index, data = print_structure(zeolite_copy, index, data[item]['N'], item,struc_dir, data)
+
+	return index, data
