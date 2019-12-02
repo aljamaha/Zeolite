@@ -10,10 +10,10 @@ Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate 
 '''
 
 'Inputs'
-zeolite = io.read('pd.xyz')	#Zeolite structure
-Al  	= 0				#Si to be replaced by Al
-
-exit()
+zeolite = io.read('CHA-T696.xyz')	#Zeolite structure
+#zeolite = io.read('CHA.cif')
+#Al  	= 101				#Si to be replaced by Al
+Al	= 0
 
 'Inputs (dont change)'
 cwd  	= os.getcwd()
@@ -97,8 +97,8 @@ def add_Pd(zeolite, ads, position):
 	'''
 	ads = 'Pd'
 	zeolite_copy = deepcopy(zeolite)
-	#zeolite_copy.append(Atom(ads,(position[0], position[1], position[2]+2)))
-	zeolite_copy.append(Atom(ads,(4.4,5,10)))
+	zeolite_copy.append(Atom(ads,(position[0], position[1], position[2]+2)))
+	#zeolite_copy.append(Atom(ads,(4.4,5,10)))
 	return zeolite_copy
 
 def O_neighbor_indicies(atoms):
@@ -223,17 +223,24 @@ for item in neighbors['O']['NNN']:
 'single Al'
 index = print_structure(zeolite, index, N='N', reference=str(index+1)+'.traj')
 
+
 '2 Al [NN]'
 for item in neighbors['Si']['NN']:
 	zeolite_copy = deepcopy(zeolite)
 	zeolite_copy[item].symbol = 'Al'
 	index = print_structure(zeolite_copy, index, N='NN', reference=str(index+1)+'.traj')
 
+print('NN = ', index-1) 
+
 '2 Al [NNN]'
 for item in neighbors['Si']['NNN']:
 	zeolite_copy = deepcopy(zeolite)
 	zeolite_copy[item].symbol = 'Al'
 	index = print_structure(zeolite_copy, index, N='NNN', reference=str(index+1)+'.traj')
+
+print('NNN = ', index-10)
+
+exit()
 
 '''Writing structures of H-zeolites'''
 zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
@@ -279,9 +286,11 @@ for structure in no_metal_zeolite:
 					atoms = io.read(struc_dir+'/'+structure)
 					for atom in atoms:
 						if atom.symbol == 'Al':
+							
 							zeolite_copy = add_Pd(atoms, comp, atom.position)
 							index = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'])
 							break
+
 
 '''Space surrounding metal zeolites'''
 
@@ -295,21 +304,20 @@ for item in data:
 				metal_zeolites[item] = atom.index
 				break
 
+
 '''
 To do ...
 * enough space to accommodate for NO?
 * when I add a periodic image, am I repeated myself or identifying new combinations?]
 * adding metal to oxidaiton +2 adds only one metal on one of the two Al sites
 * am I adding Pd to the optimal site?
-
-Later ...
-* How would things change if Pd had a +1 oxidation state? [including when there is only one Al]
-* change inputs dictionary
-* change adsorbate name from Pd to a variable (to accomodate different oxidation states)
 * am I missing other Pd oxidation states?
 
+Later ...
+* change inputs dictionary
+* change adsorbate name from Pd to a variable (to accomodate different oxidation states)
+
 Questions:
-* Do metals repalce Al?
 * How can I verify two structures are not symmetric?
 * Should I add a criteria for distance?
 * Andrew Gettson [in Ford] did work on Al distribution on chabasize
