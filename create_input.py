@@ -2,23 +2,39 @@
 
 import os
 from ase import io
+import json
 
 '''
 Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc = [111] 		#identify structures [under structures folder]
+calc     = '111'	#identify structures [under structures folder]
 basis    = 'def2-sv(p)'	#basis set [def2-sv(p) or def2-tzvpd]
 job_type = 'opt'
 exchange = 'omegab97x-d'
-fixed_atoms = '1400'
-qm_atoms    = '14'
 
 'General Inputs (do not change)'
 cwd       = os.getcwd()
 struc_dir = cwd+'/structures'
 details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #naming dir (uniqueness)
+data_dir = cwd+'/data'
+with open(data_dir+"/data.json", "r") as read_file:
+    data = json.load(read_file)
+
+'qm region'
+qm_atoms    = data[calc+'.traj']['qm_region']
+fixed_atoms = []
+atoms       = io.read(struc_dir+'/'+calc+'.traj')
+for index, item in enumerate(atoms):
+	if index in qm_atoms:
+		continue
+	else:
+		fixed_atoms.append(str(index))
+		
+exit()
+#fixed_atoms = '1400'
+qm_atoms    = '14'
 
 def rm_section():
 	'writes details of rm section'
@@ -29,7 +45,7 @@ def rm_section():
 	f.write('jobtype\t'+job_type+'\n')
 	f.write('exchange\t'+exchange+'\n')
 	f.write('basis'+'\t'+basis+'\n')
-	f.write('AIMD_FIXED_ATOMS\t'+fixed_atoms)
+	f.write('AIMD_FIXED_ATOMS\t'+len(fixed_atoms))
 	f.write(text_rm)
 	f.write('$end\n\n')
 
@@ -75,17 +91,15 @@ for i in calc:
 	atoms = io.read('input.traj')
 	n_atoms = len(atoms)
 	atoms.write('input.xyz')
-	os.system('cp '+cwd+'/qm-mm-connectivity.py .')
-	os.system('python qm-mm-connectivity.py input.xyz '+qm_atoms+' > tmp')
+	os.system('cp '+cwd+'/connectivity.py .')
+	os.system('python connectivity.py input.xyz '+qm_atoms+' > tmp')
 
 	'''writing opt.in'''
 	f = open('opt.in','w')
-
 	rm_section()
 	qm_atoms_section(qm_atoms)
 	comments_section()
 	ff_parameters()
 	opt_section(int(qm_atoms), n_atoms)
 	molecules_section()
-
 	f.close()
