@@ -29,7 +29,7 @@ def count_elements(atoms):
 		structure_data[item] = list(atoms.symbols).count(item)
 	return structure_data
 
-def print_structure(atoms, index, N, reference, struc_dir, data):
+def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms):
 	'''
 	Inputs:
 		atoms: ase atoms object
@@ -49,7 +49,7 @@ def print_structure(atoms, index, N, reference, struc_dir, data):
 	data[str(index)+'.traj']['reference'] = reference
 	if 'H' not in list(data[str(index)+'.traj']):
 		data[str(index)+'.traj']['H'] = 0
-	data[str(index)+'.traj']['oxidation']= int(data[str(index)+'.traj']['Al']) - int(data[str(index)+'.traj']['H'])
+	#data[str(index)+'.traj']['oxidation'] = int(data[str(index)+'.traj']['Al'])*3 - H_atoms + (int(data[str(index)+'.traj']['H']) - H_atoms) + int(data[str(index)+'.traj']['Si'])*4 - int(data[str(index)+'.traj']['O'])*2 
 
 	return index, data
 
@@ -239,9 +239,7 @@ def identify_NNN_Si(N_list, neighbors):
 				neighbors['Si']['NNN'].append(neighbor)
 	return neighbors
 
-zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
-
-def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index):
+def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms):
 	'''
 	write structures of H-zeolites
 	Inputs:
@@ -256,12 +254,12 @@ def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index):
 		if data[item]['Al'] == 1:
 			for O in neighbors['O']['N']:
 				zeolite_copy = add_H(atoms, O, 1)
-				index, data = print_structure(zeolite_copy, index, 'N', item,struc_dir, data)
+				index, data = print_structure(zeolite_copy, index, 'N', item,struc_dir, data, H_atoms)
 		else:
 			O_index = O_neighbor_indicies(atoms, N_list)
 			for i in O_index[0]:
 				for j in O_index[1]:
 					zeolite_copy = add_H(atoms, i, 2, j)
-					index, data = print_structure(zeolite_copy, index, data[item]['N'], item,struc_dir, data)
+					index, data = print_structure(zeolite_copy, index, data[item]['N'], item,struc_dir, data, H_atoms)
 
 	return index, data
