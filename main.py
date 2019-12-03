@@ -34,8 +34,6 @@ zeolite.write('tmp.xyz')
 N_list = neighbor_list('tmp.xyz')	#dict of neighbors list
 os.system('rm tmp.xyz')
 
-pickle.dump(N_list, open("save.p", "wb"))
-
 '''Building Si and O N, NN, and NNN'''
 neighbors = identify_N(N_list[Al],N_list, neighbors, Al)
 neighbors = identify_NN_O(neighbors, N_list)
@@ -106,10 +104,8 @@ for item in data:
 '''
 To do ...
 * enough space to accommodate for NO?
-* when I add a periodic image, am I repeated myself or identifying new combinations?]
 * adding metal to oxidaiton +2 adds only one metal on one of the two Al sites
-* am I adding Pd to the optimal site?
-* am I missing other Pd oxidation states?
+* am I adding Pd to the optimal site? missing other oxidation states?
 
 Later ...
 * change inputs dictionary
