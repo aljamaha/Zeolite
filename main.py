@@ -6,6 +6,7 @@ from copy import deepcopy
 from molmod import *
 import pickle
 from functions import *
+from qm_region import qm_region
 
 '''
 Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate adsorption sites
@@ -14,8 +15,6 @@ Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate 
 'Inputs'
 zeolite = io.read('CHA-T696.xyz')	#Zeolite structure
 Al	= 0
-#zeolite = io.read('CHA.cif')
-#Al  	= 101				#Si to be replaced by Al
 
 'Inputs (dont change)'
 cwd  	= os.getcwd()
@@ -25,8 +24,6 @@ data 	= {}			#store details of each structure
 neighbors = {}			#storing neighbors for Si and O
 neighbors['O']  = {'N':[],'NN':[],'NNN':[]}
 neighbors['Si'] = {'N':[],'NN':[],'NNN':[]}
-
-'''Lets go!'''
 
 'substitute Si with Al'
 zeolite[Al].symbol = 'Al'
@@ -63,7 +60,7 @@ for item in neighbors['Si']['NNN']:
 
 '''Writing structures of H-zeolites'''
 zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
-index, data = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index)
+index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list)
 
 '''Writing structures of metal modified zeolites'''
 no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
@@ -98,18 +95,10 @@ for structure in no_metal_zeolite:
 							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'],struc_dir, data)
 							break
 
-
-'''Space surrounding metal zeolites'''
-
-metal_zeolites = {} #store zeolites with metals
-
+'''identify qm region'''
 for item in data:
-	if 'Pd' in data[item].keys():
-		atoms = io.read(struc_dir+'/'+item)
-		for atom in atoms:
-			if atom.symbol == 'Pd':
-				metal_zeolites[item] = atom.index
-				break
+	data = qm_region(data, item, struc_dir, N_list)
+	print(data[item])
 
 '''
 To do ...
@@ -143,4 +132,16 @@ for item in metal_zeolites:
 	d[item] = []
 	for N in N_list[metal_zeolites[item]]:
 		d[item].append(atoms.get_distance(metal_zeolites[item],N))
+
+Space surrounding metal zeolites
+
+metal_zeolites = {} #store zeolites with metals
+
+for item in data:
+	if 'Pd' in data[item].keys():
+		atoms = io.read(struc_dir+'/'+item)
+		for atom in atoms:
+			if atom.symbol == 'Pd':
+				metal_zeolites[item] = atom.index
+				break
 '''
