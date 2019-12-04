@@ -4,36 +4,18 @@ from molmod import *	#further info are here: http://molmod.github.io/molmod/tuto
 
 '''
 Objective: convert an xyz coordinates to qmmm molecule format
-Input format: python qm-mm-connectivity <xyz coordinates> <List of qm atoms>
+Input format: python qm-mm-connectivity <xyz coordinates> <# of qm atoms>
 Output: $molecule section in qm-mm
 '''
 
 'Modified version from Jeroen Van Der Mynsbrugge original script'
-'''
+
 if len(sys.argv) !=3:
 	'raise an error when less than two arguments are provided'
 	sys.stderr.write("Wrong input format\nInput format: python qm-mm-connectivity.py <xyz file> <#of qm atoms>\n")
 	quit()
-'''
-'qm_atoms input is a list. Convert it into a numeric python list'
-qm_atoms = list(sys.argv[2:])	#List number of qm atoms
-empty    = 0			#stores the number of empty entries into the list
 
-for index, item in enumerate(qm_atoms):
-	if '[' in item:	
-		item = item.replace("[",'')
-	if ']' in item:
-		item = item.replace("]",'')
-	if ',' in item:
-		item = item.replace(",",'') 
-	if item == "":
-		empty +=1 
-		qm_atoms[index] = item
-	else:
-		qm_atoms[index] = int(item)
-
-for i in range(0,empty):
-	qm_atoms.remove("")
+qm_atoms = range(0,int(sys.argv[2]))	#number of qm atoms
 
 mol = Molecule.from_file(sys.argv[1])	#reads the input <xyz coordinates>
 mol.set_default_masses()		#reads the mass of each atom in xyz input
