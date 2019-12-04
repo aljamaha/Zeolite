@@ -98,7 +98,7 @@ for i in calc:
 	atoms.write('input.xyz')
 	os.system('cp '+cwd+'/../general/connectivity.py .')
 	fixed_atoms, qm_atoms = qm_fixed_regions(i, data, struc_dir)
-	os.system('python connectivity.py input.xyz 0 > tmp')
+	os.system('python connectivity.py input.xyz '+str(qm_atoms)+' > tmp')
 
 	'''writing opt.in'''
 	f = open('opt.in','w')
