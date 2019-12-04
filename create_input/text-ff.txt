@@ -1,5 +1,5 @@
-$force_field_params   
-NumAtomTypes   3000        
+$force_field_params
+NumAtomTypes   3000
 AtomType   -1   -0.35   1.77   -0.018         
 AtomType   -13   -0.35   1.77   -0.018         
 AtomType   -2   0.7   2.2   -0.047        

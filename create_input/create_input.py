@@ -9,7 +9,7 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc     = ['1']	#identify structures [under structures folder]
+calc     = ['1','2','3','4','5']	#identify structures [under structures folder]
 basis    = 'def2-sv(p)'	#basis set [def2-sv(p) or def2-tzvpd]
 job_type = 'opt'
 exchange = 'omegab97x-d'
@@ -22,16 +22,16 @@ data_dir = cwd+'/../data'
 with open(data_dir+"/data.json", "r") as read_file:
     data = json.load(read_file)
 		
-def rm_section():
+def rem_section():
 	'writes details of rm section'
 	g = open(cwd+'/text-rm.txt','r')
 	text_rm = g.read()
 	g.close()
-	f.write('$rm\n')
-	f.write('jobtype\t'+job_type+'\n')
-	f.write('exchange\t'+exchange+'\n')
-	f.write('basis'+'\t'+basis+'\n')
-	f.write('AIMD_FIXED_ATOMS\t'+str(len(fixed_atoms))+'\n')
+	f.write('$rem   \n')
+	f.write('jobtype \t'+job_type+'\n')
+	f.write('exchange   '+exchange+'\n')
+	f.write('basis   \t'+basis+'\n')
+	f.write('AIMD_FIXED_ATOMS \t'+str(len(fixed_atoms))+'\n')
 	f.write(text_rm)
 	f.write('$end\n\n')
 
@@ -102,7 +102,7 @@ for i in calc:
 
 	'''writing opt.in'''
 	f = open('opt.in','w')
-	rm_section()
+	rem_section()
 	qm_atoms_section(qm_atoms)
 	comments_section()
 	ff_parameters()

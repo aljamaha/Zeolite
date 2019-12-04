@@ -1,17 +1,20 @@
-ecp     def2-ecp
 geom_opt_coords 0                 
-max_scf_cycles  250 		#max scf cycles        
-geom_opt_max_cycles   	500   
+max_scf_cycles  500         
+geom_opt_max_cycles   	500         
+ecp	def2-ecp
+scf_guess gwh
+scf_algorithm 	diis_gdm
 QM_MM_INTERFACE Zeolite         
-force_field   	charmm27        #FF
+force_field   	charmm27         
 user_connect   	true      
 symmetry    	off         
 sym_ignore   	true         
 print_input   	true         
-qmmm_print   	false		#Controls printing output
-qm_mm   	true		#turn on Q-Chem/Charm interface         
-qmmm_full_hessian   false       #evaluates the whole hessian
-mem_total   	3600         
+qmmm_print   	false         
+qm_mm   	true    
+model_system_mult 1     
+qmmm_full_hessian   false         
+mem_total   	2000         
 mem_static   	450         
 geom_opt_dmax   80
 pop_mulliken false
