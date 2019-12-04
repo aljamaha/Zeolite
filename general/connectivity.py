@@ -4,7 +4,7 @@ from molmod import *	#further info are here: http://molmod.github.io/molmod/tuto
 
 '''
 Objective: convert an xyz coordinates to qmmm molecule format
-Input format: python qm-mm-connectivity <xyz coordinates> <# of qm atoms>
+Input format: python qm-mm-connectivity <xyz coordinates> <List of qm atoms>
 Output: $molecule section in qm-mm
 '''
 
@@ -15,7 +15,25 @@ if len(sys.argv) !=3:
 	sys.stderr.write("Wrong input format\nInput format: python qm-mm-connectivity.py <xyz file> <#of qm atoms>\n")
 	quit()
 
-qm_atoms = range(0,int(sys.argv[2]))	#number of qm atoms
+'qm_atoms input is a list. Convert it into a numeric python list'
+qm_atoms = list(sys.argv[2])	#List number of qm atoms
+empty    = 0			#stores the number of empty entries into the list
+
+for index, item in enumerate(qm_atoms):
+	if '[' in item:	
+		item = item.replace("[",'')
+	if ']' in item:
+		item = item.replace("]",'')
+	if ',' in item:
+		item = item.replace(",",'') 
+	if item == "":
+		empty +=1 
+		qm_atoms[index] = item
+	else:
+		qm_atoms[index] = int(item)
+
+for i in range(0,empty):
+	qm_atoms.remove("")
 
 mol = Molecule.from_file(sys.argv[1])	#reads the input <xyz coordinates>
 mol.set_default_masses()		#reads the mass of each atom in xyz input
@@ -46,6 +64,7 @@ for i in mol.graph.neighbors:
 for i in mol.graph.neighbors:
 	indexes = [n for n in mol.graph.neighbors[i]]
 	if i in qm_atoms:
+		print(i)
 		type = 0 #no MM information is needed here
 	elif i in link_Si:
 		type = -24 #different charge is assigned due to H replacement in QM region
