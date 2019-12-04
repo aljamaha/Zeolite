@@ -101,7 +101,7 @@ for structure in no_metal_zeolite:
 '''identify qm region'''
 for item in data:
 	data = qm_region(data, item, struc_dir, N_list)
-
+	print(data[item])
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
 
