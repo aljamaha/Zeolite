@@ -16,7 +16,13 @@ def output():
 		if '.out' in f:
 			out.append(f)
 	os.system('rm tmp')
+	
 	return out
+
+if len(output()) != 1:
+	sys.stderr.write("More than one output files in the directory\n")
+	quit()
+	
 output_file = output()[0]
 
 'read output file contect'
