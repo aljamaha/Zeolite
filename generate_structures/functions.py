@@ -50,6 +50,7 @@ def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms):
 	if 'H' not in list(data[str(index)+'.traj']):
 		data[str(index)+'.traj']['H'] = 0
 	data[str(index)+'.traj']['oxidation'] = int(data[str(index)+'.traj']['Al'])*3 - H_atoms + (int(data[str(index)+'.traj']['H']) - H_atoms) + int(data[str(index)+'.traj']['Si'])*4 - int(data[str(index)+'.traj']['O'])*2 
+	data[str(index)+'.traj']['total_atoms'] = len(atoms)
 
 	return index, data
 

@@ -20,7 +20,7 @@ H_atoms = 192				#number of H atoms in original structure to account for termina
 
 'Inputs (dont change)'
 cwd  	= os.getcwd()
-struc_dir = cwd+'/../structures'	#dir to store structures
+struc_dir = cwd+'/../structures_saved'	#dir to store structures
 index 	= 0			#index of the structure
 data 	= {}			#store details of each structure
 neighbors = {}			#storing neighbors for Si and O
@@ -101,7 +101,7 @@ for structure in no_metal_zeolite:
 '''identify qm region'''
 for item in data:
 	data = qm_region(data, item, struc_dir, N_list)
-	print(data[item])
+
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
 
