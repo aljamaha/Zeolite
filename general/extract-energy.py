@@ -1,4 +1,4 @@
-import os, sys
+import os
 from matplotlib import pyplot as plt
 
 '''
@@ -6,7 +6,18 @@ Objective: Extract energy data from Q-Chem output
 Input: python extract-energy.py <output file name>
 '''
 
-output_file = sys.argv[1]	#output file name
+'find output file'
+def output():
+	'extracts name of the output files'
+	out = []
+	os.system('ls > tmp')
+	files = [line.rstrip('\n') for line in open('tmp')]
+	for f in files:
+		if '.out' in f:
+			out.append(f)
+	os.system('rm tmp')
+	return out
+output_file = output()[0]
 
 'read output file contect'
 f = open(output_file,'r')
