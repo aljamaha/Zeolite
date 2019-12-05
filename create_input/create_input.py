@@ -9,14 +9,17 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc     = ['1','2','3','4','5']	#identify structures [under structures folder]
-basis    = 'def2-sv(p)'	#basis set [def2-sv(p) or def2-tzvpd]
-job_type = 'opt'
-exchange = 'omegab97x-d'
+calculations = []
+for j in range(6,7):
+	calculations.append(str(j))
+#calculations    = ['1','2','3','4','5']	#identify structures [under structures folder]
+basis    	= 'def2-sv(p)'	#basis set [def2-sv(p) or def2-tzvpd]
+job_type 	= 'opt'
+exchange 	= 'omegab97x-d'
 
 'General Inputs (do not change)'
 cwd       = os.getcwd()
-struc_dir = cwd+'/../structures'
+struc_dir = cwd+'/../structures_saved'
 details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #naming dir (uniqueness)
 data_dir = cwd+'/../data'
 with open(data_dir+"/data.json", "r") as read_file:
@@ -86,18 +89,19 @@ def qm_fixed_regions(traj, data, struc_dir):
 
 'run calculations'
 
-for i in calc:
-	i = str(i)
+for calc in calculations:
 	os.chdir(cwd+'/../calculations')
-	if os.path.exists(i+'-'+details) is not True:
-		os.system('mkdir '+i+'-'+details)
-	os.chdir(i+'-'+details)
-	os.system('cp '+struc_dir+'/'+i+'.traj input.traj')
+	if os.path.exists(calc+'-'+details) is not True:
+		os.system('mkdir '+calc+'-'+details)
+	os.chdir(calc+'-'+details)
+	with open("dir_data.json", "w") as write_file:
+		json.dump(data[calc+'.traj'], write_file, indent=4)
+	os.system('cp '+struc_dir+'/'+calc+'.traj input.traj')
 	atoms = io.read('input.traj')
 	n_atoms = len(atoms)
 	atoms.write('input.xyz')
 	os.system('cp '+cwd+'/../general/connectivity.py .')
-	fixed_atoms, qm_atoms = qm_fixed_regions(i, data, struc_dir)
+	fixed_atoms, qm_atoms = qm_fixed_regions(calc, data, struc_dir)
 	os.system('python connectivity.py input.xyz '+str(qm_atoms)+' > tmp')
 
 	'''writing opt.in'''
