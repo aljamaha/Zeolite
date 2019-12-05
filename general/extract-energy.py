@@ -24,6 +24,11 @@ for line in lines:
 		energy.append(float(line[-14:])- E0)
 		steps.append(step)
 
+'write output energy'
+f = open('energy.txt','w')
+f.write(str(energy[-1]+E0))
+f.close()
+
 'Plot'
 ax = plt.figure(1)
 plt.plot(steps, energy,'o-',markersize=10,linewidth=4.0)
