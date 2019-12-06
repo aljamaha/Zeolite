@@ -9,39 +9,40 @@ Output: $molecule section in qm-mm
 '''
 
 'Modified version from Jeroen Van Der Mynsbrugge original script'
-'''
-if len(sys.argv) !=3:
-	'raise an error when less than two arguments are provided'
-	sys.stderr.write("Wrong input format\nInput format: python qm-mm-connectivity.py <xyz file> <#of qm atoms>\n")
-	quit()
-'''
+
 'qm_atoms input is a list. Convert it into a numeric python list'
-qm_atoms = list(sys.argv[2:])	#List number of qm atoms
-empty    = 0			#stores the number of empty entries into the list
-
-for index, item in enumerate(qm_atoms):
-	if '[' in item:	
-		item = item.replace("[",'')
-	if ']' in item:
-		item = item.replace("]",'')
-	if ',' in item:
-		item = item.replace(",",'') 
-	if item == "":
-		empty +=1 
-		qm_atoms[index] = item
-	else:
-		qm_atoms[index] = int(item)
-
-for i in range(0,empty):
-	qm_atoms.remove("")
-
 mol = Molecule.from_file(sys.argv[1])	#reads the input <xyz coordinates>
+qm_atoms = list(sys.argv[2:])		#List of qm atoms
+
+def clean_qm_atoms(qm_atoms):
+	'converts list of qm_atoms to a str easily used later on'
+	empty    = 0			#stores the number of empty entries into the list
+
+	for index, item in enumerate(qm_atoms):
+		if '[' in item:
+			item = item.replace("[",'')
+		if ']' in item:
+			item = item.replace("]",'')
+		if ',' in item:
+			item = item.replace(",",'')
+		if item == "":
+			empty +=1
+			qm_atoms[index] = item
+		else:
+			qm_atoms[index] = int(item)
+
+	for i in range(0,empty):
+		qm_atoms.remove("")
+
+	return qm_atoms
+
+qm_atoms = clean_qm_atoms(qm_atoms)
 mol.set_default_masses()		#reads the mass of each atom in xyz input
 assert(mol.graph is None)
 mol.set_default_graph()			#derive a molecular graph based on geometry
 
 'Identiy O-atoms (in MM region) connected to qm atoms [replaced by H for the QM calculation]'
-link_O = []			
+link_O = []
 for i in mol.graph.neighbors:
 	'loop over all atoms in xyz input file'
 	if i in qm_atoms:
@@ -79,5 +80,3 @@ for i in mol.graph.neighbors:
 
 	'print results'
 	print("%s\t % f\t % f\t % f\t % i\t %i\t %i\t %i\t %i\t" % (str(mol.symbols[i]), mol.coordinates[i][0]/angstrom, mol.coordinates[i][1]/angstrom, mol.coordinates[i][2]/angstrom, type, indexes[0]+1 if len(indexes) > 0 else 0, indexes[1]+1 if len(indexes) > 1 else 0, indexes[2]+1 if len(indexes) > 2 else 0, indexes[3]+1 if len(indexes) > 3 else 0))
-
-

@@ -24,7 +24,11 @@ details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #nami
 data_dir = cwd+'/../data'
 with open(data_dir+"/data.json", "r") as read_file:
     data = json.load(read_file)
+<<<<<<< HEAD
 		
+=======
+
+>>>>>>> d13f17186162aa120e6a0ccecf63fda9edca88a6
 def rem_section():
 	'writes details of rm section'
 	g = open(cwd+'/text-rm.txt','r')
@@ -46,7 +50,7 @@ def qm_atoms_section(qm_atoms):
 		#index+1 since q-chem starts with 1 as an index (compared to 0 in ase)
 		f.write(str(index+1)+' ')
 	f.write('\n$end\n\n')
-	
+
 def comments_section():
 	'writes details of the comment section'
 	g = open(cwd+'/text-comments.txt','r')
@@ -66,7 +70,7 @@ def opt_section(fixed_atoms):
 		n = int(n)+1 #ase starts from zero but q-chem from 1
 		f.write(str(n)+'\tXYZ\n')
 	f.write('endfixed\n$end\n\n')
-	
+
 def molecules_section():
 	'writes details of the #molecule section'
 	f.write('$molecule\n0  1\n')
