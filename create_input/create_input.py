@@ -10,7 +10,7 @@ Running calculations on selected strucutres. Provide Inputs below
 
 'Inputs'
 calculations = []
-for j in range(6,7):
+for j in range(6,28):
 	calculations.append(str(j))
 #calculations    = ['1','2','3','4','5']	#identify structures [under structures folder]
 basis    	= 'def2-sv(p)'	#basis set [def2-sv(p) or def2-tzvpd]
