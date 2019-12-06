@@ -9,29 +9,32 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc     = ['1']	#identify structures [under structures folder]
-basis    = 'def2-sv(p)'	#basis set [def2-sv(p) or def2-tzvpd]
-job_type = 'opt'
-exchange = 'omegab97x-d'
+calculations = []
+for j in range(6,28):
+	calculations.append(str(j))
+#calculations    = ['1','2','3','4','5']	#identify structures [under structures folder]
+basis    	= 'def2-sv(p)'	#basis set [def2-sv(p) or def2-tzvpd]
+job_type 	= 'opt'
+exchange 	= 'omegab97x-d'
 
 'General Inputs (do not change)'
 cwd       = os.getcwd()
-struc_dir = cwd+'/../structures'
+struc_dir = cwd+'/../structures_saved'
 details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #naming dir (uniqueness)
 data_dir = cwd+'/../data'
 with open(data_dir+"/data.json", "r") as read_file:
     data = json.load(read_file)
-		
-def rm_section():
+
+def rem_section():
 	'writes details of rm section'
 	g = open(cwd+'/text-rm.txt','r')
 	text_rm = g.read()
 	g.close()
-	f.write('$rm\n')
-	f.write('jobtype\t'+job_type+'\n')
-	f.write('exchange\t'+exchange+'\n')
-	f.write('basis'+'\t'+basis+'\n')
-	f.write('AIMD_FIXED_ATOMS\t'+str(len(fixed_atoms))+'\n')
+	f.write('$rem   \n')
+	f.write('jobtype \t'+job_type+'\n')
+	f.write('exchange   '+exchange+'\n')
+	f.write('basis   \t'+basis+'\n')
+	f.write('AIMD_FIXED_ATOMS \t'+str(len(fixed_atoms))+'\n')
 	f.write(text_rm)
 	f.write('$end\n\n')
 
@@ -43,7 +46,7 @@ def qm_atoms_section(qm_atoms):
 		#index+1 since q-chem starts with 1 as an index (compared to 0 in ase)
 		f.write(str(index+1)+' ')
 	f.write('\n$end\n\n')
-	
+
 def comments_section():
 	'writes details of the comment section'
 	g = open(cwd+'/text-comments.txt','r')
@@ -63,7 +66,7 @@ def opt_section(fixed_atoms):
 		n = int(n)+1 #ase starts from zero but q-chem from 1
 		f.write(str(n)+'\tXYZ\n')
 	f.write('endfixed\n$end\n\n')
-	
+
 def molecules_section():
 	'writes details of the #molecule section'
 	f.write('$molecule\n0  1\n')
@@ -86,23 +89,24 @@ def qm_fixed_regions(traj, data, struc_dir):
 
 'run calculations'
 
-for i in calc:
-	i = str(i)
+for calc in calculations:
 	os.chdir(cwd+'/../calculations')
-	if os.path.exists(i+'-'+details) is not True:
-		os.system('mkdir '+i+'-'+details)
-	os.chdir(i+'-'+details)
-	os.system('cp '+struc_dir+'/'+i+'.traj input.traj')
+	if os.path.exists(calc+'-'+details) is not True:
+		os.system('mkdir '+calc+'-'+details)
+	os.chdir(calc+'-'+details)
+	with open("dir_data.json", "w") as write_file:
+		json.dump(data[calc+'.traj'], write_file, indent=4)
+	os.system('cp '+struc_dir+'/'+calc+'.traj input.traj')
 	atoms = io.read('input.traj')
 	n_atoms = len(atoms)
 	atoms.write('input.xyz')
 	os.system('cp '+cwd+'/../general/connectivity.py .')
-	fixed_atoms, qm_atoms = qm_fixed_regions(i, data, struc_dir)
+	fixed_atoms, qm_atoms = qm_fixed_regions(calc, data, struc_dir)
 	os.system('python connectivity.py input.xyz '+str(qm_atoms)+' > tmp')
 
 	'''writing opt.in'''
 	f = open('opt.in','w')
-	rm_section()
+	rem_section()
 	qm_atoms_section(qm_atoms)
 	comments_section()
 	ff_parameters()
