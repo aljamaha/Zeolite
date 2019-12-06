@@ -5,13 +5,14 @@ import pickle
 from functions import identify_N
 import os
 
-def qm_region(data,traj, struc_dir,  N_list):
+def qm_region(data,traj, struc_dir,  N_list, total_original_atoms):
 	'''
 	identifies elements in qm region of a zeolite structure based on Al atoms
 	inputs : 
 		 data  : data dictionary
 		 traj  : name of the traj of the structure
 		 N_list: neighbor list of all atoms
+		total_original_atoms: number of atoms in original zeolite
 	outputs: data dictionary with qm region as part of the data[traj_name]
 	'''
 
@@ -47,4 +48,9 @@ def qm_region(data,traj, struc_dir,  N_list):
 			else:
 				data[traj]['qm_region'].append(item)
 
+	if len(atoms) > total_original_atoms:
+		'adding H/metal atoms in QM region'
+		for index in range(total_original_atoms, len(atoms)):
+			data[traj]['qm_region'].append(index)
+				
 	return data

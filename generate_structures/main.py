@@ -27,6 +27,7 @@ neighbors = {}			#storing neighbors for Si and O
 neighbors['O']  = {'N':[],'NN':[],'NNN':[]}
 neighbors['Si'] = {'N':[],'NN':[],'NNN':[]}
 data_dir        = cwd+'/../data'
+total_original_atoms = len(zeolite) 	#number of total atoms in the zeolite structure
 
 'substitute Si with Al'
 zeolite[Al].symbol = 'Al'
@@ -100,7 +101,7 @@ for structure in no_metal_zeolite:
 
 '''identify qm region'''
 for item in data:
-	data = qm_region(data, item, struc_dir, N_list)
+	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
