@@ -24,7 +24,11 @@ f = open(qout, 'r')
 lines = f.read().split("\n")
 f.close()
 
-os.system('mkdir traj')	#data are saved here
+if os.path.exists('traj'):
+	d = 'do nothing'
+else:
+	os.system('mkdir traj')	#data are saved here
+
 file_number = 0		#for numbering traj files
 
 for index, line in enumerate(lines):
@@ -41,3 +45,5 @@ for index, line in enumerate(lines):
 				else:
 					g.write(lines[i][11:]+'\n')
 			g.close()
+
+os.system('cp traj/{}.xyz qm-final.xyz'.format(file_number))
