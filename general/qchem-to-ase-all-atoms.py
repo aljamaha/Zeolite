@@ -17,7 +17,7 @@ if len(sys.argv) !=4:
 'input arguments'
 qout    = sys.argv[1]	#qchem output file name
 xyzfile = sys.argv[2]	#xyz coordinates original input file name
-atoms   = sys.argv[3]   #qm atoms (includes also H)
+atoms   = sys.argv[3]   #total # of atoms
 
 'read q-chem output file'
 f = open(qout, 'r')
