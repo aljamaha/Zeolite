@@ -12,14 +12,18 @@ Running calculations on selected strucutres. Provide Inputs below
 calculations = []
 for j in range(28,29):
 	calculations.append(str(j))
-basis    	= 'def2-tzvpd'	#basis set [def2-sv(p) or def2-tzvpd]
-job_type 	= 'opt'
+basis    	= 'def2-tzvpd' 	#basis set [def2-sv(p) or def2-tzvpd]
 exchange 	= 'omegab97x-d'
 cwd       = os.getcwd()
 struc_dir = cwd+'/../structures_saved'
 data_dir = cwd+'/../data'
 calc_dir = '/Users/hassanaljama/Desktop/CHA/calculations'
 create_input_dir = '/Users/hassanaljama/Desktop/CHA/create_input'
+job_type 	= 'scf'
+if basis == 'def2-sv(p)':
+	job_type 	= 'scf'
+elif basis == 'def2-tzvpd':
+	job_type 	= 'opt'
 
 'General Inputs (do not change)'
 details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #naming dir (uniqueness)
