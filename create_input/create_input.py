@@ -13,17 +13,17 @@ calculations = []
 for j in range(28,29):
 	calculations.append(str(j))
 basis    	= 'def2-tzvpd' 	#basis set [def2-sv(p) or def2-tzvpd]
+#basis    	= 'def2-sv(p)' 	#basis set [def2-sv(p) or def2-tzvpd]
 exchange 	= 'omegab97x-d'
 cwd       = os.getcwd()
 struc_dir = cwd+'/../structures_saved'
 data_dir = cwd+'/../data'
 calc_dir = '/Users/hassanaljama/Desktop/CHA/calculations'
 create_input_dir = '/Users/hassanaljama/Desktop/CHA/create_input'
-job_type 	= 'scf'
-if basis == 'def2-sv(p)':
-	job_type 	= 'scf'
-elif basis == 'def2-tzvpd':
+if  basis == 'def2-sv(p)':
 	job_type 	= 'opt'
+elif basis == 'def2-tzvpd':
+	job_type 	= 'sp'
 
 'General Inputs (do not change)'
 details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #naming dir (uniqueness)
@@ -107,7 +107,7 @@ for calc in calculations:
 		n_atoms = len(atoms)
 		atoms.write('input.xyz')
 	elif basis == 'def2-tzvpd':
-		os.system('cp '+calc_dir+'/'+calc+'-opt-omegab97x-d-def2-svp/qm-final.xyz input.xyz')
+		os.system('cp '+calc_dir+'/'+calc+'-opt-omegab97x-d-def2-svp/full-atoms.xyz input.xyz')
 	os.system('cp '+cwd+'/../general/connectivity.py .')
 	fixed_atoms, qm_atoms = qm_fixed_regions(calc, data, struc_dir)
 	os.system('python connectivity.py input.xyz '+str(qm_atoms)+' > tmp')
