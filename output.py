@@ -46,7 +46,7 @@ def extract_energy(output_file):
 def calc_status(wd):
 	'''
 	check calcualtion status
-	Output: 
+	Output:
 		status of calculation (complete/incomplete)
 		name of output folder
 	'''
@@ -97,9 +97,9 @@ for folder in folders:
 				break
 
 		'extract calculation detail'
-		data[folder]['calc']   = folder[index+1:] 
+		data[folder]['calc']   = folder[index+1:]
 		data[folder]['status'] = calc_status(os.getcwd())[0]
-		
+
 		if data[folder]['status'] == 'complete':
 			'extract energy if calculation is complete'
 			output_file = calc_status(os.getcwd())[1]
@@ -108,7 +108,10 @@ for folder in folders:
 
 			'print traj of the qm region'
 			os.system('python '+scripts_dir+'/convert-qchem-output-to-ase.py '+output_file+' '+'input.xyz'+' '+str(len(data_original[ref]['qm_region'])+16))
-		
+
+			'print full traj of all atoms'
+			os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
+
 for item in data:
 	if data[item]['status'] == 'incomplete':
 		print(item, data[item])
