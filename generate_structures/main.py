@@ -15,8 +15,8 @@ Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate 
 
 'Inputs'
 zeolite = io.read('../original_structures/CHA-T696.xyz')	#Zeolite structure
-Al	= 0
-H_atoms = 192				#number of H atoms in original structure to account for terminal O
+Al	= 0	#index of Si atom to be replaced by an Al atom			
+H_atoms = 192	#number of H atoms in original structure to account for terminal O
 
 'Inputs (dont change)'
 cwd  	= os.getcwd()
@@ -65,39 +65,37 @@ zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
 index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms)
 
 '''Writing structures of metal modified zeolites'''
-'''
 no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
 
 #### this needs to change####
 inputs = {'PdO': [-2, 0, 2], 'Pd2O': [-2, 2, 6], 'PdO2': [-4, -2, 0], 'Pd2O2': [-4, 0, 4], 'Pd': [0, 2, 4]}
 ox1, ox2 = 0,0
+
 for structure in no_metal_zeolite:
-	if data[structure]['oxidation'] == 0:
-		'oxidation state of zero'
+	if data[structure]['oxidation'] == -2:
+		'oxidation stae of +2 is needed'
+		'do I need to do other oxidation states?'
 		for comp in inputs:
 			for ox in inputs[comp]:
-				if ox == 0:
+				if ox == -2:
 					atoms = io.read(struc_dir+'/'+structure)
 					for atom in atoms:
-						if atom.symbol == 'H':
-							zeolite_copy = add_Pd(atoms, comp, atom.position)
-							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'],struc_dir, data, H_atoms)
-	elif data[structure]['oxidation'] == 1:
-		'to be added of +1'
-		continue
-	elif data[structure]['oxidation'] == 2:
-		'oxidation state of +2'
-		for comp in inputs:
-			for ox in inputs[comp]:
-				if ox == 2:
-					atoms = io.read(struc_dir+'/'+structure)
-					for atom in atoms:
-						if atom.symbol == 'Al':
-							
+						if atom.symbol == 'Al':	
 							zeolite_copy = add_Pd(atoms, comp, atom.position)
 							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'],struc_dir, data, H_atoms)
 							break
-'''
+	'''
+	elif data[structure]['oxidation'] == -1:
+		for comp in inputs:
+			for ox in inputs[comp]:
+				if ox == -2:
+					atoms = io.read(struc_dir+'/'+structure)
+					for atom in atoms:
+						if atom.symbol == 'Al':	
+							zeolite_copy = add_Pd(atoms, comp, atom.position)
+							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'],struc_dir, data, H_atoms)
+							break
+	'''
 
 '''identify qm region'''
 for item in data:
