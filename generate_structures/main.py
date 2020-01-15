@@ -1,23 +1,26 @@
 #!/Users/hassanaljama/opt/anaconda3/bin/python
 
-from ase.build import add_adsorbate
 from ase import io, Atom
-import os
+import os, pickle, json
 from copy import deepcopy
 from molmod import *
-import pickle
 from functions import *
 from qm_region import qm_region
-import json
 
 '''
-Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate adsorption sites
+Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate adsorption sites [H and metal]
 '''
 
 'Inputs'
 zeolite = io.read('../original_structures/CHA-T696.xyz')	#Zeolite structure
 Al	= 0	#index of Si atom to be replaced by an Al atom			
 H_atoms = 192	#number of H atoms in original structure to account for terminal O
+metals = {}
+metals['PdO']   = {'composition':['Pd','O'], 'oxidation_state':[-2,0,2]}
+metals['Pd2O']  = {'composition':['Pd','O','Pd'], 'oxidation_state':[-2,2,6]}
+metals['PdO2']  = {'composition':['Pd','O','O'], 'oxidation_state':[-4,-2,0]}
+metals['Pd2O2'] = {'composition':['Pd','O','Pd','O'], 'oxidation_state':[-4,0,4]}
+metals['Pd']    = {'composition':['Pd'], 'oxidation_state':[0,2,4]}
 
 'Inputs (dont change)'
 cwd  	= os.getcwd()
@@ -69,29 +72,25 @@ index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list
 no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
 
 #### this needs to change####
-inputs = {}
-inputs['PdO']   = {'composition':['Pd','O'], 'oxidation_state':[-2,0,2]}
-inputs['Pd2O']  = {'composition':['Pd','O','Pd'], 'oxidation_state':[-2,2,6]}
-inputs['PdO2']  = {'composition':['Pd','O','O'], 'oxidation_state':[-4,-2,0]}
-inputs['Pd2O2'] = {'composition':['Pd','O','Pd','O'], 'oxidation_state':[-4,0,4]}
-inputs['Pd']    = {'composition':['Pd'], 'oxidation_state':[0,2,4]}
+
 
 for structure in no_metal_zeolite:
 	if data[structure]['oxidation'] == -2:
 		'oxidation stae of +2 is needed'
 		'do I need to do other oxidation states?'
-		for comp in inputs:
-			for ox in inputs[comp]:
+		for comp in metals:
+			for ox in metals[comp]['oxidation_state']:
 				if ox == -2:
 					atoms = io.read(struc_dir+'/'+structure)
 					for atom in atoms:
 						if atom.symbol == 'Al':	
-							zeolite_copy = add_metal(atoms, comp, atom.position)
+							zeolite_copy = add_metal(atoms, metals[comp]['composition'], atom.position)
 							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'], struc_dir, data, H_atoms)
-							print(index)
-							exit()
 							break
-	'''
+						
+'''	
+make this in a different loop						
+for structure in no_metal_zeolite:
 	elif data[structure]['oxidation'] == -1:
 		for comp in inputs:
 			for ox in inputs[comp]:
@@ -102,7 +101,7 @@ for structure in no_metal_zeolite:
 							zeolite_copy = add_metal(atoms, comp, atom.position)
 							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'],struc_dir, data, H_atoms)
 							break
-	'''
+'''
 
 '''identify qm region'''
 for item in data:
@@ -112,18 +111,8 @@ with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
 
 '''
-To do ...
-* enough space to accommodate for NO?
-* adding metal to oxidaiton +2 adds only one metal on one of the two Al sites
-* am I adding Pd to the optimal site? missing other oxidation states?
-
-Later ...
-* change inputs dictionary
-* change adsorbate name from Pd to a variable (to accomodate different oxidation states)
-
 Questions:
 * How can I verify two structures are not symmetric?
-* Should I add a criteria for distance?
 * Andrew Gettson [in Ford] did work on Al distribution on chabasize
 
 *** Other parts of the code: ***

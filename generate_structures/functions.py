@@ -5,6 +5,7 @@ import os
 from copy import deepcopy
 from molmod import *
 import pickle
+from ase.build import add_adsorbate
 
 def neighbor_list(xyz_file):
 	'''
@@ -37,6 +38,8 @@ def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms):
 		N    : N, NN, or NNN
 		reference: original structure without modification
 		struc_dir: directory to store structures
+		data   : json data file 
+		H_atoms: number of terminal H atoms in original zeolite 
 	Outputs:
 		prints the traj file in struc_dir folder
 		returns the index of the traj file in struc_dir and data dictionary
@@ -70,19 +73,22 @@ def add_H(zeolite, O1, H_num, O2=0):
 		zeolite_copy.append(Atom('H',(zeolite[O2].position[0],zeolite[O2].position[1],zeolite[O2].position[2]+1)))
 	return zeolite_copy
 
-def add_Pd(zeolite, ads, position):
+def add_metal(zeolite, ads, position):
 	'''
 	Inputs:
 		zeolite   : structure of zeolite
-		ads       : metal structure to be added
+		ads       : metal structure to be added (list format)
 		H_position: xyz coordinates of
 	Outputs:
 		structure of zeolite with metal adsorbed
 	'''
-	ads = 'Pd'
+	H = 1.5 #height of atom to be added
 	zeolite_copy = deepcopy(zeolite)
-	zeolite_copy.append(Atom(ads,(position[0], position[1], position[2]+2)))
-	#zeolite_copy.append(Atom(ads,(4.4,5,10)))
+
+	for elem in ads:
+		zeolite_copy.append(Atom(elem,(position[0], position[1], position[2]+H)))
+		H += 1.5
+
 	return zeolite_copy
 
 def O_neighbor_indicies(atoms, N_list):
