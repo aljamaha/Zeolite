@@ -1,5 +1,6 @@
 #!/Users/hassanaljama/opt/anaconda3/bin/python
 
+from ase.build import add_adsorbate
 from ase import io, Atom
 import os
 from copy import deepcopy
@@ -68,8 +69,12 @@ index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list
 no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
 
 #### this needs to change####
-inputs = {'PdO': [-2, 0, 2], 'Pd2O': [-2, 2, 6], 'PdO2': [-4, -2, 0], 'Pd2O2': [-4, 0, 4], 'Pd': [0, 2, 4]}
-ox1, ox2 = 0,0
+inputs = {}
+inputs['PdO']   = {'composition':['Pd','O'], 'oxidation_state':[-2,0,2]}
+inputs['Pd2O']  = {'composition':['Pd','O','Pd'], 'oxidation_state':[-2,2,6]}
+inputs['PdO2']  = {'composition':['Pd','O','O'], 'oxidation_state':[-4,-2,0]}
+inputs['Pd2O2'] = {'composition':['Pd','O','Pd','O'], 'oxidation_state':[-4,0,4]}
+inputs['Pd']    = {'composition':['Pd'], 'oxidation_state':[0,2,4]}
 
 for structure in no_metal_zeolite:
 	if data[structure]['oxidation'] == -2:
@@ -81,8 +86,10 @@ for structure in no_metal_zeolite:
 					atoms = io.read(struc_dir+'/'+structure)
 					for atom in atoms:
 						if atom.symbol == 'Al':	
-							zeolite_copy = add_Pd(atoms, comp, atom.position)
-							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'],struc_dir, data, H_atoms)
+							zeolite_copy = add_metal(atoms, comp, atom.position)
+							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'], struc_dir, data, H_atoms)
+							print(index)
+							exit()
 							break
 	'''
 	elif data[structure]['oxidation'] == -1:
@@ -92,7 +99,7 @@ for structure in no_metal_zeolite:
 					atoms = io.read(struc_dir+'/'+structure)
 					for atom in atoms:
 						if atom.symbol == 'Al':	
-							zeolite_copy = add_Pd(atoms, comp, atom.position)
+							zeolite_copy = add_metal(atoms, comp, atom.position)
 							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'],struc_dir, data, H_atoms)
 							break
 	'''
