@@ -1,6 +1,7 @@
 # Zeolite
 
 In Progress ..
+
 ## Requirements:
   molmod
   
@@ -15,11 +16,15 @@ Generate unique zeolite structures (1 or 2 Al atoms substituting Si, and adsorpt
 `python main.py`
 ### inputs:
 xyz file of original zeolite structure (placed under original_structures folders)
+
 index of T-atom (Si atoms) to be replaced with the first Al atom
+
 number of terminal H atoms in the original structure (needed to eliminate dangling bonds from terminal Si in the cluster)
+
+adsorbed metals oxidation states and compositions
 ## outputs:
     
-Create input
+## Create input
     
     
     
