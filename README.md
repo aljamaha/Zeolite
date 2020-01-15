@@ -7,7 +7,8 @@ In Progress ..
   - ase 
   - Q-Chem
 
-## 1. generate_structures: 
+## Step 1: generate_structures: 
+
 ### objective: 
 Generate unique zeolite structures (1 or 2 Al atoms substituting Si, and adsorption sites for H/metal)
 ### syntax:
@@ -25,10 +26,20 @@ currently only adds adsorbates with oxidation state of +2
 - generate structures of the zeolites (under structures_saved)
 - data file (json) containing information on each generated structure (under data directory)
 
+## Step 2: Create input
+### objective: 
+Create Q-Chem input files for desired structures
+### syntax:
+`python create_input.py`
+### inputs:
+- index of the first structure
+- index of the last structure
+- calculation type (optimization or single-point)
+## outputs:
+generate input file for each calculation in a new folder (under calculations directory)
 
-## 2. Create input
-    
-    
-    
+## Step 4: Calculations
+Run desired calculations (under calculations directory)
 
+## Step 5: 
 
