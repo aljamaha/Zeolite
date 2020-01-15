@@ -3,7 +3,9 @@
 In Progress ..
 ## Requirements:
   molmod
+  
   ase
+  
   Q-Chem
 
 ## generate_structures: 
