@@ -3,9 +3,9 @@
 In Progress ..
 
 ## Requirements:
-  -molmod
-  -ase 
-  -Q-Chem
+  - molmod
+  - ase 
+  - Q-Chem
 
 ## generate_structures: 
 ### objective: 
