@@ -7,7 +7,7 @@ In Progress ..
   - ase 
   - Q-Chem
 
-## generate_structures: 
+## 1. generate_structures: 
 ### objective: 
 Generate unique zeolite structures (1 or 2 Al atoms substituting Si, and adsorption sites for H/metal)
 ### syntax:
@@ -26,7 +26,7 @@ currently only adds adsorbates with oxidation state of +2
 - data file (json) containing information on each generated structure (under data directory)
 
 
-## Create input
+## 2. Create input
     
     
     
