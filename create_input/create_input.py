@@ -9,24 +9,27 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calculations = []
-for j in range(28,29):
-	calculations.append(str(j))
-basis    	= 'def2-tzvpd' 	#basis set [def2-sv(p) or def2-tzvpd]
-#basis    	= 'def2-sv(p)' 	#basis set [def2-sv(p) or def2-tzvpd]
+calc_start = 448
+calc_end   = 526
+job_type = 'opt' #either sp or opt
+
 exchange 	= 'omegab97x-d'
 cwd       = os.getcwd()
 struc_dir = cwd+'/../structures_saved'
 data_dir = cwd+'/../data'
-calc_dir = '/Users/hassanaljama/Desktop/CHA/calculations'
-create_input_dir = '/Users/hassanaljama/Desktop/CHA/create_input'
-if  basis == 'def2-sv(p)':
-	job_type 	= 'opt'
-elif basis == 'def2-tzvpd':
-	job_type 	= 'sp'
+calc_dir = '/home/aljama/Zeolite/calculations/'
+create_input_dir = '//home/aljama/Zeolite/create_input'
+scripts_dir = '/home/aljama/scripts/' 	#this is where qm-initial structure script is 
 
 'General Inputs (do not change)'
+if job_type == 'sp':
+	basis    	= 'def2-tzvpd' 	#basis set [def2-sv(p) or def2-tzvpd]
+elif job_type == 'opt':
+	basis    	= 'def2-sv(p)' 	#basis set [def2-sv(p) or def2-tzvpd]
 details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #naming dir (uniqueness)
+calculations = []
+for j in range(calc_start,calc_end):
+	calculations.append(str(j))
 with open(data_dir+"/data.json", "r") as read_file:
     data = json.load(read_file)
 
@@ -121,3 +124,7 @@ for calc in calculations:
 	opt_section(fixed_atoms)
 	molecules_section()
 	f.close()
+
+	'print initial qm structure'
+	os.system('cp '+scripts_dir+'/qm_structure.py .')
+	os.system('python qm_structure.py')
