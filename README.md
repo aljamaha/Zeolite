@@ -22,9 +22,8 @@ Generate unique zeolite structures (1 or 2 Al atoms substituting Si, and adsorpt
 currently only adds adsorbates with oxidation state of +2
 
 ## outputs:
-generate structures of the zeolites (under structures_saved)
-
-data file (json) containing information on each generated structure (under data directory)
+- generate structures of the zeolites (under structures_saved)
+- data file (json) containing information on each generated structure (under data directory)
 
 
 ## Create input
