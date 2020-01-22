@@ -71,48 +71,44 @@ index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list
 '''Writing structures of metal modified zeolites'''
 no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
 
-#### this needs to change####
-
-
 for structure in no_metal_zeolite:
 	if data[structure]['oxidation'] == -2:
 		'oxidation stae of +2 is needed'
 		'do I need to do other oxidation states?'
 		for comp in metals:
 			for ox in metals[comp]['oxidation_state']:
-				if ox == -2:
+				if ox == 2:
 					atoms = io.read(struc_dir+'/'+structure)
 					for atom in atoms:
 						if atom.symbol == 'Al':	
 							zeolite_copy = add_metal(atoms, metals[comp]['composition'], atom.position)
 							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'], struc_dir, data, H_atoms)
-							break
-						
-'''	
-make this in a different loop						
-for structure in no_metal_zeolite:
-	elif data[structure]['oxidation'] == -1:
-		for comp in inputs:
-			for ox in inputs[comp]:
-				if ox == -2:
-					atoms = io.read(struc_dir+'/'+structure)
-					for atom in atoms:
-						if atom.symbol == 'Al':	
-							zeolite_copy = add_metal(atoms, comp, atom.position)
-							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'],struc_dir, data, H_atoms)
-							break
-'''
 
 '''identify qm region'''
 for item in data:
 	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
+'''NO adsorption'''
+no_ads_zeolites = list(data)
+for structure in no_ads_zeolites:
+	if data[structure]['oxidation'] == 0:
+		atoms = io.read(struc_dir+'/'+structure)
+		atoms_qm = data[structure]['qm_region']
+		for atom_num in atoms_qm:
+			atom_type = atoms[atom_num].symbol
+			if atom_type == 'H':
+				zeolite_copy = add_ads(atoms, ['N','O'], atoms[atom_num].position)
+				index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, NO='yes', reference_H = structure)
+
+'''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
+for item in data:
+	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+'''save data'''
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
 
 '''
 Questions:
-* How can I verify two structures are not symmetric?
 * Andrew Gettson [in Ford] did work on Al distribution on chabasize
 
 *** Other parts of the code: ***
@@ -142,4 +138,4 @@ for item in data:
 			if atom.symbol == 'Pd':
 				metal_zeolites[item] = atom.index
 				break
-'''
+'''	
