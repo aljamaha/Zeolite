@@ -4,8 +4,8 @@ from ase import io
 'Analyze the output of qmmm calculations and exports data to output_data.json'
 
 'Inputs'
-calc_dir = '/home/aljama/CHA/calculations/'	#directory where caluculatiosn are saved
-data_dir = '/home/aljama/CHA/data/'		#directory where data are saved
+calc_dir = '/home/aljama/Zeolite/calculations/'	#directory where caluculatiosn are saved
+data_dir = '/home/aljama/Zeolite/data/'		#directory where data are saved
 scripts_dir = '/home/aljama/scripts/'		#directory where zeolites scripts are
 
 cwd = os.getcwd()
@@ -103,8 +103,14 @@ def H_qm_region(n_O, n_Si, n_Al):
 folders = folders_list(calc_dir)	#folders in calculations/directory
 
 'open saved json file'
-with open(data_dir+"/data_output.json", "r") as read_file:
-	data = json.load(read_file)		#output data
+
+if os.path.isfile(data_dir+"/data_output.json") == True:
+	with open(data_dir+"/data_output.json", "r") as read_file:
+		data = json.load(read_file)		#output data
+else:
+	data = {}
+	with open(data_dir+"/data_ouptput.json", "w") as write_file:
+  		json.dump(data, write_file, indent=4)
 
 with open(data_dir+"/data.json", "r") as read_file:
 	data_original = json.load(read_file)	#original data details
@@ -171,9 +177,10 @@ for folder in folders:
 			'print full traj of all atoms if they do not exist'
 			os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
 
-for item in data:
-	if data[item]['status'] == 'incomplete':
-		print(item, data[item])
+
+#for item in data:
+#	if data[item]['status'] == 'incomplete':
+#		print(item, data[item])
 
 'saving output data'
 with open(data_dir+"/data_output.json", "w") as write_file:
