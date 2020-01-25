@@ -24,7 +24,7 @@ def rem_section():
 	text_rm = g.read()
 	g.close()
 	f.write('$rem   \n')
-	f.write('jobtype \topt')
+	f.write('jobtype \topt\n')
 	f.write('exchange   '+exchange+'\n')
 	f.write('basis   \t'+basis+'\n')
 	f.write('AIMD_FIXED_ATOMS \t'+str(len(fixed_atoms))+'\n')
