@@ -68,6 +68,33 @@ for item in neighbors['Si']['NNN']:
 zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
 index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms)
 
+'''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
+for item in data:
+	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+
+''''writing structures of NH3 adsorbed on H'''
+structures_so_far = list(data)
+for structure in structures_so_far:
+	if data[structure]['oxidation'] == 0:
+		atoms    = io.read(struc_dir+'/'+structure)
+		atoms_qm = data[structure]['qm_region']	
+		for atom_num in atoms_qm:
+			atom_type = atoms[atom_num].symbol
+			if atom_type == 'H':
+				zeolite_copy = add_ads(atoms, ['N','H','H','H'], atoms[atom_num].position) 
+				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')
+
+'''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
+for item in data:
+	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+
+'''save data'''
+with open(data_dir+"/data.json", "w") as write_file:
+    json.dump(data, write_file, indent=4)
+
+print('exited after NH3 ads')
+exit()
+
 '''Writing structures of metal modified zeolites'''
 no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
 
@@ -98,11 +125,12 @@ for structure in no_ads_zeolites:
 			atom_type = atoms[atom_num].symbol
 			if atom_type == 'H':
 				zeolite_copy = add_ads(atoms, ['N','O'], atoms[atom_num].position)
-				index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, NO='yes', reference_H = structure)
+				index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
 
-'''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
+'''identify qm region'''
 for item in data:
 	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+
 '''save data'''
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)

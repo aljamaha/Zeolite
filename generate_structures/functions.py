@@ -30,7 +30,7 @@ def count_elements(atoms):
 		structure_data[item] = list(atoms.symbols).count(item)
 	return structure_data
 
-def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms, NO='no',reference_H=[]):
+def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms,reference_H=[], adsorbate=''):
 	'''
 	Inputs:
 		atoms: ase atoms object
@@ -40,7 +40,7 @@ def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms, NO='no
 		struc_dir: directory to store structures
 		data   : json data file 
 		H_atoms: number of terminal H atoms in original zeolite 
-		NO     : "yes" means NO exists, "no" means it does not
+		adsorbate     : name of the adsorbate
 	Outputs:
 		prints the traj file in struc_dir folder
 		returns the index of the traj file in struc_dir and data dictionary
@@ -51,12 +51,13 @@ def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms, NO='no
 	data[str(index)+'.traj'] = count_elements(atoms)
 	data[str(index)+'.traj']['N'] = N
 	data[str(index)+'.traj']['reference'] = reference
-	data[str(index)+'.traj']['NO_g'] = NO
+	if adsorbate != '':
+		data[str(index)+'.traj']['adsorbate'] = adsorbate
 	if 'H' not in list(data[str(index)+'.traj']):
 		data[str(index)+'.traj']['H'] = 0
 	if 'Pd' in data[str(index)+'.traj']:
 		data[str(index)+'.traj']['oxidation'] = 0
-	elif data[str(index)+'.traj']['NO_g'] == 'yes':
+	elif 'adsorbate' != '':
 		data[str(index)+'.traj']['oxidation'] = 0
 		data[str(index)+'.traj']['reference_H'] = reference_H
 	else:	
@@ -108,15 +109,21 @@ def add_ads(zeolite, ads, position, H=1.3):
 	Outputs:
 		structure of zeolite with metal adsorbed
 	'''
+
 	zeolite_copy = deepcopy(zeolite)
 
-	for elem in ads:
-		zeolite_copy.append(Atom(elem,(position[0], position[1], position[2]+H)))
-		H += 1.3
+	if ads == ['N','H','H','H']:
+		zeolite_copy.append(Atom('N',(position[0], position[1], position[2]+H)))
+		zeolite_copy.append(Atom('H',(position[0]+1, position[1], position[2]+H)))
+		zeolite_copy.append(Atom('H',(position[0]-1, position[1], position[2]+H)))
+		zeolite_copy.append(Atom('H',(position[0], position[1]+1, position[2]+H)))
+		
+	else:
+		for elem in ads:
+			zeolite_copy.append(Atom(elem,(position[0], position[1], position[2]+H)))
+			H += 1.3
 
 	return zeolite_copy
-
-
 
 def O_neighbor_indicies(atoms, N_list):
 	'''
