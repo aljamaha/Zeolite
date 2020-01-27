@@ -9,8 +9,8 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc_start = 604
-calc_end   = 639
+calc_start = 452
+calc_end   = 484
 job_type = 'opt' #either sp or opt
 
 exchange 	= 'omegab97x-d'
@@ -128,3 +128,7 @@ for calc in calculations:
 	'print initial qm structure'
 	os.system('cp '+scripts_dir+'/qm_structure.py .')
 	os.system('python qm_structure.py')	
+
+	'print structure of surrounding atoms'	
+	os.system('cp '+scripts_dir+'/surroundings_structure.py .')
+	os.system('python surroundings_structure.py')	
