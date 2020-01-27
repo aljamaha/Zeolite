@@ -99,7 +99,19 @@ def add_metal(zeolite, ads, position):
 
 	return zeolite_copy
 
-def add_ads(zeolite, ads, position, H=1.3):
+def del_last_atoms(atoms, n):
+	'''
+	deletes last n atom in an atom object
+	Inputs: 
+		atoms - ase atoms object
+		n     - the number of atoms to be deleted
+	'''
+	for i in range(0,n):
+		del atoms[-1]
+	
+	return atoms
+
+def add_ads(zeolite, ads, position, index, H=1.6):
 	'''
 	Inputs:
 		zeolite   : structure of zeolite
@@ -111,19 +123,71 @@ def add_ads(zeolite, ads, position, H=1.3):
 	'''
 
 	zeolite_copy = deepcopy(zeolite)
+	status = 'pass' #initialize as pass. If distance is too small, make it fail
 
 	if ads == ['N','H','H','H']:
-		zeolite_copy.append(Atom('N',(position[0], position[1], position[2]+H)))
-		zeolite_copy.append(Atom('H',(position[0]+1, position[1], position[2]+H)))
-		zeolite_copy.append(Atom('H',(position[0]-1, position[1], position[2]+H)))
-		zeolite_copy.append(Atom('H',(position[0], position[1]+1, position[2]+H)))
-		
+		NH = 0.3 #distance between N and H
+		#first add NH3 on top
+		zeolite_copy.append(Atom('N',(position[0]    , position[1]    , position[2]+H)))
+		zeolite_copy.append(Atom('H',(position[0]+NH, position[1]    , position[2]+H)))
+		zeolite_copy.append(Atom('H',(position[0]-NH, position[1]    , position[2]+H)))
+		zeolite_copy.append(Atom('H',(position[0]    , position[1]+NH, position[2]+H)))
+
+		distance = distance_to_others(zeolite_copy, len(zeolite_copy)-4)
+		if distance < 0.8:
+			status = 'fail'	
+
+		if status == 'fail':
+			#if atoms too close, add it to the right
+			zeolite_copy = del_last_atoms(zeolite_copy, 4)
+			zeolite_copy.append(Atom('N',(position[0]+H, position[1],     position[2])))
+			zeolite_copy.append(Atom('H',(position[0]+NH, position[1], position[2])))
+			zeolite_copy.append(Atom('H',(position[0]-NH, position[1], position[2])))
+			zeolite_copy.append(Atom('H',(position[0]+H, position[1]+NH, position[2])))
+			status = 'pass'
+
+		distance = distance_to_others(zeolite_copy, len(zeolite_copy)-4)
+		if distance < 0.8:
+			status = 'fail'	
+
+		if status == 'fail':
+			#lastly, try adding it to the left	
+			zeolite_copy = del_last_atoms(zeolite_copy, 4)
+			zeolite_copy.append(Atom('N',(position[0], position[1]+H, position[2])))
+			zeolite_copy.append(Atom('H',(position[0], position[1]+H+NH, position[2])))
+			zeolite_copy.append(Atom('H',(position[0], position[1]+H-NH, position[2])))
+			zeolite_copy.append(Atom('H',(position[0], position[1], position[2]+H+NH)))
+
+		distance = distance_to_others(zeolite_copy, len(zeolite_copy)-4)
+		if distance < 1:
+			print('Warning: atoms too close!. Calculation index: {}'.format(index))
+					
 	else:
-		for elem in ads:
-			zeolite_copy.append(Atom(elem,(position[0], position[1], position[2]+H)))
-			H += 1.3
+		print('Warning: ads is not added to add_ads')	
+		exit()
 
 	return zeolite_copy
+
+def distance_to_others(atoms, input_atom_index, cutoff = 0.8):
+	'''
+	finds the distance of the atom wrt other atoms
+	Inputs  : input_atom_index: index of atom of interest
+		  atoms: ase atoms object
+	Outputs : regular (no atom too close)
+		  close   (some atoms might be too close)
+	
+	'''
+
+	d = 10 #large initial value
+	for atom in atoms:
+		if atom.index != input_atom_index:
+			if atom.symbol != 'H':
+				d = atoms.get_distance(atom.index, input_atom_index)
+				if abs(d) < cutoff:
+					distance = d
+					break
+	return d
+	
 
 def O_neighbor_indicies(atoms, N_list):
 	'''
