@@ -9,20 +9,23 @@ Output:       xyz files under the folder traj
 
 'Modified version from Jeroen Van Der Mynsbrugge original script'
 
-if len(sys.argv) !=4:
+if len(sys.argv) !=2:
 	'raise an error when less than two arguments are provided'
-	sys.stderr.write("Wrong input format\nInput format: python strip-qchem-output.py <qchem-output file name> <xyz initial input> <#of qm atoms>\n")
+	sys.stderr.write("Wrong input format\nInput format: python convert-qchem-output-to-aes.py <#of qm atoms>\n")
 	quit()
 
 'input arguments'
-qout    = sys.argv[1]	#qchem output file name
-xyzfile = sys.argv[2]	#xyz coordinates original input file name
-qmatoms = sys.argv[3]   #qm atoms (includes also H)
+qmatoms = sys.argv[1]   #qm atoms (includes also H)
+qout    = 'opt.out'
 
 'read q-chem output file'
-f = open(qout, 'r')
-lines = f.read().split("\n")
-f.close()
+try:
+	f = open(qout, 'r')
+	lines = f.read().split("\n")
+	f.close()
+except:
+	print('opt.out file not found')
+	exit()
 
 if os.path.exists('traj'):
 	d = 'do nothing'
