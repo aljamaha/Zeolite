@@ -21,6 +21,7 @@ metals['Pd2O']  = {'composition':['Pd','O','Pd'], 'oxidation_state':[-2,2,6]}
 metals['PdO2']  = {'composition':['Pd','O','O'], 'oxidation_state':[-4,-2,0]}
 metals['Pd2O2'] = {'composition':['Pd','O','Pd','O'], 'oxidation_state':[-4,0,4]}
 metals['Pd']    = {'composition':['Pd'], 'oxidation_state':[0,2,4]}
+calculations    = '/home/aljama/CHA/calculations/' #folder containing calculations
 
 'Inputs (dont change)'
 cwd  	= os.getcwd()
@@ -76,13 +77,17 @@ for item in data:
 structures_so_far = list(data)
 for structure in structures_so_far:
 	if data[structure]['oxidation'] == 0:
-		atoms    = io.read(struc_dir+'/'+structure)
+		try:
+			atoms = io.read(calculations+'/'+structure[0:-5]+'-opt-omegab97x-d-def2-svp/full-atoms.xyz')
+		except:
+			atoms    = io.read(struc_dir+'/'+structure)
 		atoms_qm = data[structure]['qm_region']	
 		for atom_num in atoms_qm:
 			atom_type = atoms[atom_num].symbol
-			if atom_type == 'H':
-				zeolite_copy = add_ads(atoms, ['N','H','H','H'], atoms[atom_num].position) 
-				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')
+			if atom_type == 'H':	
+	
+				zeolite_copy = add_ads(atoms, ['N','H','H','H'], atoms[atom_num].position, index) 
+				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')	
 
 '''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
 for item in data:
@@ -92,7 +97,8 @@ for item in data:
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
 
-print('exited after NH3 ads')
+print('exited after NH3 ads ..')
+
 exit()
 
 '''Writing structures of metal modified zeolites'''

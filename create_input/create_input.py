@@ -10,7 +10,7 @@ Running calculations on selected strucutres. Provide Inputs below
 
 'Inputs'
 calc_start = 452
-calc_end   = 484
+calc_end   = 483
 job_type = 'opt' #either sp or opt
 
 exchange 	= 'omegab97x-d'

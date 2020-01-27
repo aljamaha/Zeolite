@@ -126,7 +126,7 @@ def add_ads(zeolite, ads, position, index, H=1.6):
 	status = 'pass' #initialize as pass. If distance is too small, make it fail
 
 	if ads == ['N','H','H','H']:
-		NH = 0.3 #distance between N and H
+		NH = 0.8 #distance between N and H
 		#first add NH3 on top
 		zeolite_copy.append(Atom('N',(position[0]    , position[1]    , position[2]+H)))
 		zeolite_copy.append(Atom('H',(position[0]+NH, position[1]    , position[2]+H)))
