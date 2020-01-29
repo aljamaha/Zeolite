@@ -4,8 +4,8 @@ from ase import io
 'Analyze the output of qmmm calculations and exports data to output_data.json'
 
 'Inputs'
-calc_dir = '/home/aljama/Zeolite/calculations/'	#directory where caluculatiosn are saved
-data_dir = '/home/aljama/Zeolite/data/'		#directory where data are saved
+calc_dir = '/home/aljama/CHA-Pd/calculations/'	#directory where caluculatiosn are saved
+data_dir = '/home/aljama/CHA-Pd/data/'		#directory where data are saved
 scripts_dir = '/home/aljama/scripts/'		#directory where zeolites scripts are
 
 cwd = os.getcwd()
@@ -171,11 +171,14 @@ for folder in folders:
 				H_qm = H_qm_region(n_O, n_Si, n_Al)  #H added to qm region to justify MM region
 				n_qm = len(data_original[ref]['qm_region']) + H_qm #total atoms in qm region
 				n_qm = str(n_qm)
-				os.system('python convert-qchem-output-to-ase.py '+output_file+' '+'input.xyz'+' '+n_qm)
+				os.system('python convert-qchem-output-to-ase.py '+n_qm)
 
 		if os.path.isfile('traj-full-atoms/2.xyz') == False:
 			'print full traj of all atoms if they do not exist'
 			os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
+			
+			'print traj files of surroundings'
+			os.system('python '+scripts_dir+'qchem-to-ase-surroundings.py')
 
 
 #for item in data:
