@@ -5,6 +5,7 @@ from ase import io
 '''
 Objective:    convert qchem output to traj files that only includes atoms surrounding first Al atom
 Inputs:	      cutoff of atoms surrounding first Al atom
+	      make sure traj-full-atoms already exist
 Output:       xyz files under the folder surroundings-traj
 '''
 
@@ -14,7 +15,7 @@ to_be_deleted = []
 if os.path.exists('traj-surrounding-atoms') == False:
 	os.system('mkdir traj-surrounding-atoms')	#data are saved here
 
-for i in range(1,10000):
+for i in range(1,10000): #arbitrary large value for end of loop
 	if os.path.isfile('traj-full-atoms/'+str(i)+'.xyz') == True:
 		atoms = io.read('traj-full-atoms/'+str(i)+'.xyz')
 	else:
@@ -35,3 +36,4 @@ for i in range(1,10000):
 
 	atoms.write('traj-surrounding-atoms/'+str(i)+'.traj')
 
+os.system('cp traj-surrounding-atoms/'+str(i)+'.traj surroundings-final.traj')
