@@ -36,4 +36,4 @@ for i in range(1,10000): #arbitrary large value for end of loop
 
 	atoms.write('traj-surrounding-atoms/'+str(i)+'.traj')
 
-os.system('cp traj-surrounding-atoms/'+str(i)+'.traj surroundings-final.traj')
+os.system('cp traj-surrounding-atoms/'+str(i-1)+'.traj surroundings-final.traj')
