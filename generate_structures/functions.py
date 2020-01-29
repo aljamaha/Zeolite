@@ -30,7 +30,7 @@ def count_elements(atoms):
 		structure_data[item] = list(atoms.symbols).count(item)
 	return structure_data
 
-def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms,reference_H=[], adsorbate=''):
+def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms,reference_H=[], adsorbate='', metal=''):
 	'''
 	Inputs:
 		atoms: ase atoms object
@@ -46,6 +46,7 @@ def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms,referen
 		returns the index of the traj file in struc_dir and data dictionary
 		appends details of the structure to data dictionary
 	'''
+
 	index += 1
 	os.chdir(struc_dir), atoms.write(str(index)+'.traj')
 	data[str(index)+'.traj'] = count_elements(atoms)
@@ -57,12 +58,16 @@ def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms,referen
 		data[str(index)+'.traj']['H'] = 0
 	if 'Pd' in data[str(index)+'.traj']:
 		data[str(index)+'.traj']['oxidation'] = 0
-	elif 'adsorbate' != '':
+	elif adsorbate != '':
 		data[str(index)+'.traj']['oxidation'] = 0
 		data[str(index)+'.traj']['reference_H'] = reference_H
 	else:	
 		data[str(index)+'.traj']['oxidation'] = int(data[str(index)+'.traj']['Al'])*3 - H_atoms + (int(data[str(index)+'.traj']['H']) - H_atoms) + int(data[str(index)+'.traj']['Si'])*4 - int(data[str(index)+'.traj']['O'])*2 
 	data[str(index)+'.traj']['total_atoms'] = len(atoms)
+	if metal != '':
+		data[str(index)+'.traj']['metal'] = metal
+		
+
 	return index, data
 
 def add_H(zeolite, O1, H_num, O2=0):
@@ -81,7 +86,7 @@ def add_H(zeolite, O1, H_num, O2=0):
 		zeolite_copy.append(Atom('H',(zeolite[O2].position[0],zeolite[O2].position[1],zeolite[O2].position[2]+1)))
 	return zeolite_copy
 
-def add_metal(zeolite, ads, position):
+def add_metal(zeolite, ads, position, H=1.5):
 	'''
 	Inputs:
 		zeolite   : structure of zeolite
@@ -90,12 +95,10 @@ def add_metal(zeolite, ads, position):
 	Outputs:
 		structure of zeolite with metal adsorbed
 	'''
-	H = 1.5 #height of atom to be added
 	zeolite_copy = deepcopy(zeolite)
 
-	for elem in ads:
-		zeolite_copy.append(Atom(elem,(position[0], position[1], position[2]+H)))
-		H += 1.5
+	if ads == 'Pd':
+		zeolite_copy.append(Atom('Pd',(position[0], position[1], position[2]+H)))
 
 	return zeolite_copy
 
@@ -368,3 +371,55 @@ def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms):
 					index, data = print_structure(zeolite_copy, index, data[item]['N'], item,struc_dir, data, H_atoms)
 
 	return index, data
+
+def middle_of_2_Al(atom1, atom2):
+	'''
+	finds the middle distance between two Al atoms
+	inputs:
+		atom1: position of first Al atom
+		atom2: position of second Al atom
+	output: 
+		position to add ads
+	'''
+	
+	pos = (atom1+atom2)/2.0
+	
+	return pos
+	
+
+def CHA_ads(xyz):
+	'''
+	find the nearest pore for adsorbing an atom on Chabasite [6 MR and 8 MR]
+	Inputs:
+		xyz - coordinates of the atoms to be adsorbed
+	Output:
+		pore = xyz of nearest pore in 6 and 8 MR
+	'''
+
+	#dict of compiled xyz postions where pore is located (either along y or z axis)
+	CHA = {}
+	CHA['y'] = [[-2,0, -5], [10,0, -5], [6,0,0], [-6,1.5, 0], [2,0,5], [10,0,10], [-2,0,-5], [-2,-2,10]]
+	CHA['z'] = [[0,0,1.5], [4,7, 3], [4,-7, 3], [8,0,8], [-8,0,0], [-4,7,0], [-4,-7,3], [12,-7,3]]
+
+	d1, d2 = 10, 10 #assign a large initial value
+	pore1, pore2 = [100,100,100], [100,100,100]
+	for item in CHA['z']:
+		distance = np.sqrt( (item[0] - xyz[0])**2 + (item[1] - xyz[1])**2 )
+		if distance < d1:
+			d1 = distance
+			pore1 = item
+
+	for item in CHA['y']:
+		distance = np.sqrt( (item[0] - xyz[0])**2 + (item[2] - xyz[2])**2 )
+		if distance < d2:
+			d2 = distance
+			pore2 = item
+
+	#retain position in the original axis
+	pore1 = [pore1[0], pore1[1], xyz[2]]
+	pore2 = [pore2[0], xyz[1]  , pore2[2]]
+
+	return pore1, pore2
+	
+			
+		
