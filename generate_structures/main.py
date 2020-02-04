@@ -15,17 +15,23 @@ Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate 
 zeolite = io.read('../original_structures/CHA-T696.xyz')	#Zeolite structure
 Al	= 0	#index of Si atom to be replaced by an Al atom			
 H_atoms = 192	#number of H atoms in original structure to account for terminal O
-metals = {}
-metals['PdO']   = {'composition':['Pd','O'], 'oxidation_state':[-2,0,2]}
-metals['Pd2O']  = {'composition':['Pd','O','Pd'], 'oxidation_state':[-2,2,6]}
-metals['PdO2']  = {'composition':['Pd','O','O'], 'oxidation_state':[-4,-2,0]}
-metals['Pd2O2'] = {'composition':['Pd','O','Pd','O'], 'oxidation_state':[-4,0,4]}
-metals['Pd']    = {'composition':['Pd'], 'oxidation_state':[0,2,4]}
-calculations    = '/home/aljama/CHA/calculations/' #folder containing calculations
+#metals = {}
+#metals['PdO']   = {'composition':['Pd','O'], 'oxidation_state':[-2,0,2]}
+#metals['Pd2O']  = {'composition':['Pd','O','Pd'], 'oxidation_state':[-2,2,6]}
+#metals['PdO2']  = {'composition':['Pd','O','O'], 'oxidation_state':[-4,-2,0]}
+#metals['Pd2O2'] = {'composition':['Pd','O','Pd','O'], 'oxidation_state':[-4,0,4]}
+#metals['Pd']    = {'composition':['Pd'], 'oxidation_state':[0,2,4]}
+calculations    = '/home/aljama/CHA/calculations/' #folder containing optimized calculations
 
 'Inputs (dont change)'
 cwd  	= os.getcwd()
-struc_dir = cwd+'/../structures_saved'	#dir to store structures
+
+try:
+	#os.path.isfile(cwd+'/../structures_saved')	#dir to store structures
+	struc_dir = cwd+'/../structures_saved'
+except:
+	os.system('mkdir '+cwd+'/../structures_saved')
+
 index 	= 0			#index of the structure
 data 	= {}			#store details of each structure
 neighbors = {}			#storing neighbors for Si and O
@@ -73,21 +79,76 @@ index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list
 for item in data:
 	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
-''''writing structures of NH3 adsorbed on H'''
+''''writing structures of Pd+2 adsorbed on +2 structures'''
+'''
 structures_so_far = list(data)
 for structure in structures_so_far:
-	if data[structure]['oxidation'] == 0:
+
+	if data[structure]['oxidation'] == -2:
+		
+		n_Al = 0 #number of Al atoms, position of Al atoms	
+		Al_num = []	
+
 		try:
 			atoms = io.read(calculations+'/'+structure[0:-5]+'-opt-omegab97x-d-def2-svp/full-atoms.xyz')
 		except:
 			atoms    = io.read(struc_dir+'/'+structure)
+			print('optimized structure for {} is not found'.format(structure))
+
 		atoms_qm = data[structure]['qm_region']	
+
 		for atom_num in atoms_qm:
-			atom_type = atoms[atom_num].symbol
-			if atom_type == 'H':	
-	
-				zeolite_copy = add_ads(atoms, ['N','H','H','H'], atoms[atom_num].position, index) 
-				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')	
+			if atoms[atom_num].symbol == 'Al':
+				n_Al += 1
+				Al_num.append(atom_num)
+				
+		if n_Al == 1:
+			'n_Al should be of no interest here'
+
+			xyz_Al = atoms[Al_num[0]].position
+			Pd_pos = CHA_ads(xyz_pos)
+			zeolite_copy = add_metal(atoms, 'Pd', Pd_pos, 0) 
+			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
+
+		elif n_Al == 2:	
+			'add to both 6 and 8 MR'
+			add_Pd_pos = middle_of_2_Al(atoms[Al_num][0].position, atoms[Al_num][1].position)
+			Pd_pos = CHA_ads(add_Pd_pos)
+			zeolite_copy = add_metal(atoms, 'Pd', Pd_pos[0], 0) 
+			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')			
+			zeolite_copy = add_metal(atoms, 'Pd', Pd_pos[1], 0) 
+			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')
+'''
+
+'''
+Writing structures for NH3 ads
+'''
+structures_so_far = list(data)
+
+for structure in structures_so_far:
+
+	if data[structure]['oxidation'] == 0:
+		
+		H_num = []	 #number of H atoms
+
+		try:
+			atoms = io.read(calculations+'/'+structure[0:-5]+'-opt-omegab97x-d-def2-svp/full-atoms.xyz')
+		except:
+			atoms    = io.read(struc_dir+'/'+structure)
+			print('optimized structure for {} is not found'.format(structure))
+
+		atoms_qm = data[structure]['qm_region']	
+
+		for atom_num in atoms_qm:
+			if atoms[atom_num].symbol == 'H':
+				H_num.append(atom_num)
+				
+		for H_atom in H_num:
+			'prints two structures based on nearest pore in each (8 MR and 6 MR)'
+			xyz_H        = atoms[H_atom].position
+			H_pos        = CHA_ads(xyz_H)
+			zeolite_copy = add_NH3(atoms, H_pos[2]) 
+			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')	
 
 '''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
 for item in data:
@@ -96,80 +157,3 @@ for item in data:
 '''save data'''
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
-
-print('exited after NH3 ads ..')
-
-exit()
-
-'''Writing structures of metal modified zeolites'''
-no_metal_zeolite = list(data) #List of structures with no introduced metal [includes ones with H]
-
-for structure in no_metal_zeolite:
-	if data[structure]['oxidation'] == -2:
-		'oxidation stae of +2 is needed'
-		'do I need to do other oxidation states?'
-		for comp in metals:
-			for ox in metals[comp]['oxidation_state']:
-				if ox == 2:
-					atoms = io.read(struc_dir+'/'+structure)
-					for atom in atoms:
-						if atom.symbol == 'Al':	
-							zeolite_copy = add_metal(atoms, metals[comp]['composition'], atom.position)
-							index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'], struc_dir, data, H_atoms)
-
-'''identify qm region'''
-for item in data:
-	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
-
-'''NO adsorption'''
-no_ads_zeolites = list(data)
-for structure in no_ads_zeolites:
-	if data[structure]['oxidation'] == 0:
-		atoms = io.read(struc_dir+'/'+structure)
-		atoms_qm = data[structure]['qm_region']
-		for atom_num in atoms_qm:
-			atom_type = atoms[atom_num].symbol
-			if atom_type == 'H':
-				zeolite_copy = add_ads(atoms, ['N','O'], atoms[atom_num].position)
-				index, data = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
-
-'''identify qm region'''
-for item in data:
-	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
-
-'''save data'''
-with open(data_dir+"/data.json", "w") as write_file:
-    json.dump(data, write_file, indent=4)
-
-'''
-Questions:
-* Andrew Gettson [in Ford] did work on Al distribution on chabasize
-
-*** Other parts of the code: ***
-identify_repeat_structures(index)d = []
-for i in range(1,index):
-	d.append(Al_Al_distance(io.read(struc_dir+'/'+str(i)+'.traj')))
-
-Finds the distance between metal atoms and nearby elements
-d = {}
-for item in metal_zeolites:
-	atoms = io.read(struc_dir+'/'+item)
-	atoms.write('tmp.xyz')
-	N_list = neighbor_list('tmp.xyz')	#dict of neighbors list
-	os.system('rm tmp.xyz')
-	d[item] = []
-	for N in N_list[metal_zeolites[item]]:
-		d[item].append(atoms.get_distance(metal_zeolites[item],N))
-
-Space surrounding metal zeolites
-
-metal_zeolites = {} #store zeolites with metals
-
-for item in data:
-	if 'Pd' in data[item].keys():
-		atoms = io.read(struc_dir+'/'+item)
-		for atom in atoms:
-			if atom.symbol == 'Pd':
-				metal_zeolites[item] = atom.index
-				break
-'''	
