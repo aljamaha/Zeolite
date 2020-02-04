@@ -36,20 +36,27 @@ del molecule[-1], molecule[1], molecule[0]	#del items not containing atom inform
 
 for index, item in enumerate(molecule):
 	'identify O/H atoms with more than needed connecting atoms'
+	entry = item.split('\t')
 	if item[0] == 'O':
-		entry = item.split('\t')
 		if entry[-1] != ' 0' or entry[-2] != ' 0':
 			if index in qm:
 				print(index, 'in qm region')
 			else:
 				print(index, 'not in qm region')
-	if item[0] == 'H':	
-		entry = item.split('\t')
+	elif item[0] == 'H':	
 		if entry[-1] != ' 0' or entry[-2] != ' 0' or entry[-3] != ' 0':	
 			if index in qm:
 				print(index, 'in qm region')
 			else:
 				print(index, 'not in qm region')
+	elif item[0:2] == 'Si' or item[0:2] == 'Al':
+		if entry[-1] == ' 0' or entry[-2] == ' 0' or entry[-3] == ' 0' or entry[-4] == ' 0':
+			if index in qm:
+				print(index, 'in qm region')	
+			else:
+				print(index, 'not in qm region')
+	else:
+		print(item[0:2])
 
 			
 		
