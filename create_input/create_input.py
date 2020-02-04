@@ -9,11 +9,11 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc_start = 72
-calc_end   = 73
+calc_start = 460
+calc_end   = 484
 job_type = 'opt' #either sp or opt
-calc_dir = '/home/aljama/CHA-Pd/calculations/'
-create_input_dir = '//home/aljama/CHA-Pd/create_input'
+calc_dir = '/home/aljama/CHA-NH3/calculations/'
+create_input_dir = '//home/aljama/CHA-NH3/create_input'
 
 exchange 	= 'omegab97x-d'
 cwd       = os.getcwd()
@@ -101,7 +101,10 @@ def qm_fixed_regions(traj, data, struc_dir):
 'run calculations'
 
 for calc in calculations:
-	os.chdir(calc_dir)
+	try:
+		os.chdir(calc_dir)
+	except:
+		os.system('mkdir '+calc_dir)
 	if os.path.exists(calc+'-'+details) is not True:
 		os.system('mkdir '+calc+'-'+details)
 	os.chdir(calc+'-'+details)
