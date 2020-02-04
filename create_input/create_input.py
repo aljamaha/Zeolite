@@ -9,16 +9,16 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc_start = 452
-calc_end   = 483
+calc_start = 72
+calc_end   = 73
 job_type = 'opt' #either sp or opt
+calc_dir = '/home/aljama/CHA-Pd/calculations/'
+create_input_dir = '//home/aljama/CHA-Pd/create_input'
 
 exchange 	= 'omegab97x-d'
 cwd       = os.getcwd()
 struc_dir = cwd+'/../structures_saved'
 data_dir = cwd+'/../data'
-calc_dir = '/home/aljama/Zeolite/calculations/'
-create_input_dir = '//home/aljama/Zeolite/create_input'
 scripts_dir = '/home/aljama/scripts/' 	#this is where qm-initial structure script is 
 
 'General Inputs (do not change)'
@@ -35,7 +35,10 @@ with open(data_dir+"/data.json", "r") as read_file:
 
 def rem_section():
 	'writes details of rm section'
-	g = open(create_input_dir+'/text-rm.txt','r')
+	if job_type == 'opt':
+		g = open(create_input_dir+'/text-rm.txt','r')
+	elif job_type == 'sp':
+		g = open(create_input_dir+'/text-rm-sp.txt','r')
 	text_rm = g.read()
 	g.close()
 	f.write('$rem   \n')

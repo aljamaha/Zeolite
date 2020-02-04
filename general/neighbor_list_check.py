@@ -56,7 +56,7 @@ for index, item in enumerate(molecule):
 			else:
 				print(index, 'not in qm region')
 	else:
-		print(item[0:2])
+		print(item[0:2], entry)
 
 			
 		

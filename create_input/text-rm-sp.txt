@@ -17,3 +17,4 @@ mem_total   	2000
 mem_static   	450         
 geom_opt_dmax   80
 pop_mulliken false
+THRESH	12
