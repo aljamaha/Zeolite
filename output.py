@@ -157,11 +157,12 @@ for folder in folders:
 			data[folder]['energy'] = E
 			if E == 'nan':
 				data[folder]['status'] = 'incomplete'
+				tmp_energy = ''
 			else:
 				tmp_energy = 'extracted'
 
 	if tmp_energy == 'extracted':	
-		if os.path.isfile('traj/2.xyz') == False:
+			#if os.path.isfile('traj/2.xyz') == False:
 			'print qm traj files if they do not exist'
 			os.system('cp '+scripts_dir+'/convert-qchem-output-to-ase.py .')
 			n_Al,n_Si, n_O = Al_Si_atoms()	#number of Al/Si atoms in qm region
@@ -173,7 +174,7 @@ for folder in folders:
 				n_qm = str(n_qm)
 				os.system('python convert-qchem-output-to-ase.py '+n_qm)
 
-		if os.path.isfile('traj-full-atoms/2.xyz') == False:
+			#if os.path.isfile('traj-full-atoms/2.xyz') == False:
 			'print full traj of all atoms if they do not exist'
 			os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
 			
@@ -181,9 +182,9 @@ for folder in folders:
 			os.system('python '+scripts_dir+'qchem-to-ase-surroundings.py')
 
 
-#for item in data:
-#	if data[item]['status'] == 'incomplete':
-#		print(item, data[item])
+for item in data:
+	if data[item]['status'] == 'incomplete':
+		print(item, data[item])
 
 'saving output data'
 with open(data_dir+"/data_output.json", "w") as write_file:
