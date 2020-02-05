@@ -121,6 +121,55 @@ def sort(x_pos, E):
 		
 	return new_label, new_E, x_pts
 
+
+def min_H(ref):
+	'''
+	out of the 16 possible configurations of H sites, identify the lowest energy
+	Inputs: ref - name of the original zeolite from which the Pd2+ was created (as well as H2+ by definition)
+	Output: minimum energy of the zeolite structure with protons (out of the 16 possibilities)
+	'''
+
+	'load data of H adsorbed on zeolite'
+	with open(H_data+'/data.json','r') as read_file:
+		data_H = json.load(read_file)
+
+	with open(H_data+'/data_output.json','r') as read_file:
+		data_H_output = json.load(read_file)
+
+	list_ref = []	#save items that share the same reference
+
+	for item in data_H:
+		'generate a list of items sharing the same zeolite reference (from which H2+ is created)'
+		if data_H[item]['reference'] == ref:
+			if item != ref:
+				list_ref.append(item[0:-5])
+
+	min_energy = 0	#define a high energy as starting point
+
+	for item in data_H_output:
+		'find energy of each item in list of references'
+		if data_H_output[item]['index'] in list_ref:
+			if '-sp-' in item:
+				'only extract calc from sp'
+				if data_H_output[item]['energy'] < min_energy:
+					a = item
+					min_energy =  data_H_output[item]['energy']
+
+	return min_energy
+
+def rxn_energy(E, zeolite_H):
+	'''
+	calculates rxn energy based on the following rxn:
+	Pd + [2H(+) z(2-)] --> Pd(2+) Z(2-) + H2O - 1/2 O2
+	'''
+	Pd  = -1496.0850202371
+	H2O = -76.439413334
+	O2  = -150.2765115625
+
+	energy = E + H2O - 0.5*O2 - Pd - zeolite_H
+
+	return energy*27.2114
+
 'accumulate reference entries (templates from which calculations were created and run)'
 references = {} #references for data
 
