@@ -157,6 +157,7 @@ for folder in folders:
 			data[folder]['energy'] = E
 			if E == 'nan':
 				data[folder]['status'] = 'incomplete'
+				tmp_energy = ''
 			else:
 				tmp_energy = 'extracted'
 
