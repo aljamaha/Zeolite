@@ -9,9 +9,9 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc_start = 72
-calc_end   = 73
-job_type = 'opt' #either sp or opt
+calc_start = 78
+calc_end   = 79
+job_type = 'sp' #either sp or opt
 calc_dir = '/home/aljama/CHA-Pd/calculations/'
 create_input_dir = '//home/aljama/CHA-Pd/create_input'
 
