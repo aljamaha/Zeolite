@@ -102,6 +102,25 @@ def add_metal(zeolite, ads, position, H=1.5):
 
 	return zeolite_copy
 
+def add_NH3(zeolite, position):
+	'''
+	Inputs:
+		zeolite   : structure of zeolite
+		ads       : metal structure to be added (list format)
+		position: xyz coordinates (preferablly returned from CHA_ads where it identified nearest pore)
+	Outputs:
+		structure of zeolite with NH3 adsorbed
+	'''
+	zeolite_copy = deepcopy(zeolite)
+	NH = 1	#distance between N-H
+
+	zeolite_copy.append(Atom('N',(position[0]    , position[1]    , position[2])))
+	zeolite_copy.append(Atom('H',(position[0]+NH, position[1]    , position[2])))
+	zeolite_copy.append(Atom('H',(position[0]-NH, position[1]    , position[2])))
+	zeolite_copy.append(Atom('H',(position[0]    , position[1]+NH, position[2])))
+
+	return zeolite_copy
+
 def del_last_atoms(atoms, n):
 	'''
 	deletes last n atom in an atom object
@@ -124,11 +143,11 @@ def add_ads(zeolite, ads, position, index, H=1.6):
 	Outputs:
 		structure of zeolite with metal adsorbed
 	'''
-
+	'''
 	zeolite_copy = deepcopy(zeolite)
 	status = 'pass' #initialize as pass. If distance is too small, make it fail
 
-	if ads == ['N','H','H','H']:
+	if ads == 'NH3':
 		NH = 0.8 #distance between N and H
 		#first add NH3 on top
 		zeolite_copy.append(Atom('N',(position[0]    , position[1]    , position[2]+H)))
@@ -168,7 +187,7 @@ def add_ads(zeolite, ads, position, index, H=1.6):
 	else:
 		print('Warning: ads is not added to add_ads')	
 		exit()
-
+	'''
 	return zeolite_copy
 
 def distance_to_others(atoms, input_atom_index, cutoff = 0.8):
@@ -393,7 +412,7 @@ def CHA_ads(xyz):
 	Inputs:
 		xyz - coordinates of the atoms to be adsorbed
 	Output:
-		pore = xyz of nearest pore in 6 and 8 MR
+		pore = xyz of nearest pore in 6 and 8 MR, and the shorted of the two
 	'''
 
 	#dict of compiled xyz postions where pore is located (either along y or z axis)
@@ -419,7 +438,12 @@ def CHA_ads(xyz):
 	pore1 = [pore1[0], pore1[1], xyz[2]]
 	pore2 = [pore2[0], xyz[1]  , pore2[2]]
 
-	return pore1, pore2
+	if d2>d2:
+		pore_min = pore1
+	else:
+		pore_min = pore2
+
+	return pore1, pore2, pore_min
 	
 			
 		
