@@ -9,7 +9,7 @@ Results Analysis
 
 'Inputs'
 sorted_plot = True		#if True, bar plots of energies is sorted from lowest to highest
-ring_color  = True		#if True, bar plots with ring type
+#ring_color  = False		#if True, bar plots with ring type
 data_dir    = '/home/aljama/CHA-Pd/data/'			#dir where json data are saved
 calc_dir    = '/home/aljama/CHA-Pd/calculations/'		#dir where calculations are done
 results_dir = '/home/aljama/CHA-Pd/results-analysis/' 	#dir where results are to be saved
@@ -193,7 +193,10 @@ def find_MR(ref, ring_data, color_dict, original):
 				match_index = item
 				break
 	if match_index != '':
-		output = color_dict[match_index]
+		try:
+			output = color_dict[match_index]
+		except:
+			output = 'b'
 	else:
 		output = 'y'
 
@@ -219,17 +222,30 @@ label, E, Al_d, x_pos, colour, E_min, x_min, label_min = {}, [], [],[],[],[],[],
 Al_d, E_d, c_dict = {},{},{}
 first_item = True
 
-if ring_color == True:
-	'add color input based on the type of MR'
-	try:
+'add color input based on the type of MR'
+try:
 		with open(ring_data+'/CHA_ring_type.json', 'r') as read:
 			ring_data = json.load(read)		#load data
 		color = ['b','r','g','c','k']		#assign color names
+		#color = ['b','b','b','b','b','b']		#assign color names
+
 		color_dict = {}				
 		for index, item in enumerate(ring_data):
 			color_dict[item] = color[index]		#assign color to each MR
-	except:
+except:	
+		color_dict = {}
 		print('Missing json data file for ring data')
+
+'manual deletions of repeated refernces'
+print('Warning! Manual deletion of some references!')
+del references['6.traj'] 	#repeated 4 MR
+del references['5.traj']	#repeated as 3
+del references['11.traj']	#repeated as 17 (stackd 6 MR)
+del references['8.traj']	#repeated as 7
+del references['9.traj']	#repeated as 7
+del references['10.traj']	#repeated as 7
+del references['23.traj']	#repeated as 25
+del references['26.traj']	#repeated as 25
 
 for ref in references:
 	'loop over each reference'
@@ -308,11 +324,12 @@ if sorted_plot == True:
 	print('WARNING: manual entry of NNN/NNNN')
 	new_x, new_E, x_pts, new_C = sort(x_min, E_min, colour)
 	for index, item in enumerate(new_E):
+		#print(x_min[index], E_min[index])
 		plt.bar(x_pts[index], new_E[index],color=new_C[index], align='center', alpha=1)
-		if new_x[index]>42:
-			plt.text(x_pts[index]-0.25,0.9,'NNNN', rotation = 90)
+		if new_x[index]>45:
+			plt.text(x_pts[index]-0.25,0.5,'NNNN', rotation = 90)
 		else:
-			plt.text(x_pts[index]-0.25,0.9,'NNN', rotation = 90)
+			plt.text(x_pts[index]-0.25,0.5,'NNN', rotation = 90)
 	plt.xticks(x_pts, new_x, rotation = 90)
 	plt.ylabel('Energy (eV)')
 	plt.show()
