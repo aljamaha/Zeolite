@@ -1,4 +1,4 @@
-#!/Users/hassanaljama/opt/anaconda3/bin/python
+#!/home/mgcf/software-ws/anaconda/anaconda3/envs/molmod/bin/python
 
 from ase import io, Atom
 import os, pickle, json
@@ -15,24 +15,26 @@ Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate 
 zeolite = io.read('../original_structures/CHA-T696.xyz')	#Zeolite structure
 Al	= 0	#index of Si atom to be replaced by an Al atom			
 H_atoms = 192	#number of H atoms in original structure to account for terminal O
-calculations    = '/home/aljama/CHA/calculations/' #optimized calculations
+calculations    = '/home/aljama/CHA-full-MR/calculations/' #folder containing calculations
 
-'Oxidation states of metals'
-#metals = {}
-#metals['PdO']   = {'composition':['Pd','O'], 'oxidation_state':[-2,0,2]}
-#metals['Pd2O']  = {'composition':['Pd','O','Pd'], 'oxidation_state':[-2,2,6]}
-#metals['PdO2']  = {'composition':['Pd','O','O'], 'oxidation_state':[-4,-2,0]}
-#metals['Pd2O2'] = {'composition':['Pd','O','Pd','O'], 'oxidation_state':[-4,0,4]}
-#metals['Pd']    = {'composition':['Pd'], 'oxidation_state':[0,2,4]}
+'metal oxidation states'
+metals = {}
+metals['PdO']   = {'composition':['Pd','O'], 'oxidation_state':[-2,0,2]}
+metals['Pd2O']  = {'composition':['Pd','O','Pd'], 'oxidation_state':[-2,2,6]}
+metals['PdO2']  = {'composition':['Pd','O','O'], 'oxidation_state':[-4,-2,0]}
+metals['Pd2O2'] = {'composition':['Pd','O','Pd','O'], 'oxidation_state':[-4,0,4]}
+metals['Pd']    = {'composition':['Pd'], 'oxidation_state':[0,2,4]}
 
 'Inputs (dont change)'
 cwd  	= os.getcwd()
+if os.path.exists(cwd+'/../structures_saved') == False:
+	os.system('mkdir '+cwd+'/../structures_saved')
 struc_dir = cwd+'/../structures_saved'	#dir to store structures
 index 	= 0			#index of the structure
 data 	= {}			#store details of each structure
 neighbors = {}			#storing neighbors for Si and O
-neighbors['O']  = {'NN':[],'NNN':[],'NNNN':[]}
-neighbors['Si'] = {'NN':[],'NNN':[],'NNNN':[]}
+neighbors['O']  = {'N':[],'NN':[],'NNN':[]}
+neighbors['Si'] = {'N':[],'NN':[],'NNN':[]}
 data_dir        = cwd+'/../data'
 total_original_atoms = len(zeolite) 	#number of total atoms in the zeolite structure
 
@@ -44,28 +46,28 @@ zeolite.write('tmp.xyz')
 N_list = neighbor_list('tmp.xyz')	#dict of neighbors list
 os.system('rm tmp.xyz')
 
-'''Building Si and O [NN, NNNN, and NNNN]'''
+'''Building Si and O [N, NN, and NNN]'''
 neighbors = identify_N(N_list[Al],N_list, neighbors, Al)
 neighbors = identify_NN_O(neighbors, N_list)
 neighbors = identify_NN_Si(neighbors, N_list)
 neighbors = identify_NNN_O(N_list, neighbors)
 neighbors = identify_NNN_Si(N_list, neighbors)
 
-'''Writing structures [one Al, two Al][NNN and NNNN]'''
+'''Writing structures [one Al, two Al][NN and NNN]'''
 'single Al'
-index, data = print_structure(zeolite, index, 'NN', str(index+1)+'.traj' , struc_dir, data, H_atoms)
+index, data = print_structure(zeolite, index, 'N', str(index+1)+'.traj' , struc_dir, data, H_atoms)
+
+'2 Al [NN]'
+for item in neighbors['Si']['NN']:
+	zeolite_copy = deepcopy(zeolite)
+	zeolite_copy[item].symbol = 'Al'
+	index, data = print_structure(zeolite_copy, index, 'NN', str(index+1)+'.traj',struc_dir, data, H_atoms)
 
 '2 Al [NNN]'
 for item in neighbors['Si']['NNN']:
 	zeolite_copy = deepcopy(zeolite)
 	zeolite_copy[item].symbol = 'Al'
 	index, data = print_structure(zeolite_copy, index, 'NNN', str(index+1)+'.traj',struc_dir, data, H_atoms)
-
-'2 Al [NNNN]'
-for item in neighbors['Si']['NNNN']:
-	zeolite_copy = deepcopy(zeolite)
-	zeolite_copy[item].symbol = 'Al'
-	index, data = print_structure(zeolite_copy, index, 'NNNN', str(index+1)+'.traj',struc_dir, data, H_atoms)
 
 '''Writing structures of H-zeolites'''
 '''
@@ -75,10 +77,12 @@ index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list
 '''
 
 '''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
+'''
 for item in data:
 	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
-
+'''
 ''''writing structures of Pd+2 adsorbed on +2 structures'''
+'''
 structures_so_far = list(data)
 for structure in structures_so_far:
 
@@ -103,24 +107,23 @@ for structure in structures_so_far:
 		if n_Al == 1:
 			'n_Al should be of no interest here'
 
-			'''
 			xyz_Al = atoms[Al_num[0]].position
 			Pd_pos = CHA_ads(xyz_pos)
 			zeolite_copy = add_metal(atoms, 'Pd', Pd_pos, 0) 
 			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
-			'''
 
 		elif n_Al == 2:	
 			'add to both 6 and 8 MR'
 			add_Pd_pos = middle_of_2_Al(atoms[Al_num][0].position, atoms[Al_num][1].position)
 			Pd_pos = CHA_ads(add_Pd_pos)
 			zeolite_copy = add_metal(atoms, 'Pd', Pd_pos[0], 0) 
-			index, data  = print_structure(zeolite_copy, index, data[structure]['NN'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')			
+			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')			
 			zeolite_copy = add_metal(atoms, 'Pd', Pd_pos[1], 0) 
-			index, data  = print_structure(zeolite_copy, index, data[structure]['NN'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')
-
+			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')
+'''
 '''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
 for item in data:
+	print(item)
 	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 '''save data'''
