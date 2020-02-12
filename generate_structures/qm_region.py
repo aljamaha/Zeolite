@@ -197,6 +197,9 @@ def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 			else:
 				data[traj]['qm_region'].append(i)
 
+	'identify remaining atoms in the 6/8 MR'
+	data = terminal_atoms(data, N_list, traj, atoms)
+
 	'identify O atoms connected to two Si in the qm region (only ones not accounted for yet)'
 	for item in N_list:
 		if set(N_list[item]) <= set(data[traj]['qm_region']):
@@ -206,8 +209,8 @@ def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 				print('not sure here', item)
 				data[traj]['qm_region'].append(item)
 
-	'identify remaining atoms in the 6/8 MR'
-	data = terminal_atoms(data, N_list, traj, atoms)
+	#'identify remaining atoms in the 6/8 MR'
+	#data = terminal_atoms(data, N_list, traj, atoms)
 
 	'adding H/metal atoms in QM region'
 	if len(atoms) > total_original_atoms:
