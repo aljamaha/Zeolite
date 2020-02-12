@@ -123,7 +123,7 @@ for structure in structures_so_far:
 '''
 '''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
 for item in data:
-	print(item)
+	print('='*5,'\n', item)
 	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 '''save data'''
