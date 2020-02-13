@@ -1,6 +1,7 @@
 from ase import io
 import pickle, os
 from functions import *
+from copy import deepcopy
 
 def individual_NL(index, N_list):	
 	'creates a neighboring list for atom of interest (needs only atom index and complete NL'
@@ -46,7 +47,7 @@ def MR_4(Al1, Al2, N_list, data, traj):
 def MR_4_Si(Si, N_list, data, traj):
 	'''finds if Si is in a 4 MR
 	Inputs:
-		Si    - index of Si atom of interest
+		Si     - index of Si atom of interest
 		N_list - dict of complete neighbor list
 		data   - json data file for all calculations
 		traj   - name of traj file associated with dict
@@ -63,7 +64,7 @@ def MR_4_Si(Si, N_list, data, traj):
 		test_n = individual_NL(i, N_list)
 		mutual = list( set(Si_n['Si']['N']) & set(test_n['Si']['N']) ) #find mutual elemments in neighbor
 		if len(mutual) == 2:
-			'check that both are in qm region >> to be added'
+			'check that both are in qm region'
 			if all(x in data[traj]['qm_region'] for x in mutual) == True:
 				outcome = True
 
@@ -141,6 +142,42 @@ def MR_6_NN(Al1, Al2, N_list, data, traj):
 
 	return data, output
 
+def MR_8_NNN(Al1, Al2, N_list, data, traj):	
+	'''finds Si atom missing in qm region in 8 MR where Al atoms in NNN
+	Inputs:
+		Al1    - index of Al atom
+		Al2    - index of second Al atom
+		N_list - dict of complete neighbor list
+		data   - json data file for all calculations
+		traj   - name of traj file associated with dict
+	Outputs:
+		adds Si atom (if it is found) to data[traj]['qm_region']
+		output - either '6MR' or '' if it is not a 6MR
+	'''	
+
+	Al_list1 = individual_NL(Al1, N_list)
+	Al_list2 = individual_NL(Al2, N_list)
+	MR = ''
+
+	for a1 in Al_list1['Si']['NN']:
+		a1_NL =  individual_NL(a1, N_list)
+		for a2 in Al_list2['Si']['NN']:
+			if a2 in a1_NL['Si']['N']:
+				if a1 not in data[traj]['qm_region'] and a2 not in data[traj]['qm_region']:
+					MR_a1 = MR_4_Si(a1, N_list, data, traj)
+					MR_a2 = MR_4_Si(a2, N_list, data, traj)
+					if MR_a1 == False and MR_a2 == False:
+						'terminal Si not in a 4 MR'
+						MR = '8 MR'
+						data[traj]['qm_region'].append(a1)	
+						data[traj]['qm_region'].append(a2)
+						print('8 MR NNN')	
+
+	
+	return data, MR
+
+
+
 def connecting(data, N_list, traj, atoms, Al1, Al2):
 	'''
 	Identifies missing atoms connecting 6/8 MR and adds them to QM region
@@ -167,23 +204,9 @@ def connecting(data, N_list, traj, atoms, Al1, Al2):
 
 		'8 MR'
 		if MR != '6MR':
-			'if it is not a 4/6 MR'
+			'if it is not in a 4/6 MR'
 			if data[traj]['N'] == 'NNN':
-				'if the NN Si (not in qm region) is shared'
-				for a1 in Al_list1['Si']['NN']:
-					a1_NL =  individual_NL(a1, N_list)
-					for a2 in Al_list2['Si']['NN']:
-						if a2 in a1_NL['Si']['N']:
-							if a1 not in data[traj]['qm_region'] and a2 not in data[traj]['qm_region']:
-								MR = MR_4_Si(a1, N_list, data, traj)
-								if MR == False:
-									if a1 not in data[traj]['qm_region']:
-										data[traj]['qm_region'].append(a1)
-									if a2 not in data[traj]['qm_region']:												data[traj]['qm_region'].append(a2)
-									print('8 MR NNN')	
-								else:
-									print('8 is in 4 MR')
-		
+				data, MR = MR_8_NNN(Al1, Al2, N_list, data, traj)
 
 	return data
 
@@ -352,6 +375,177 @@ def terminal_atoms(data, N_list, traj, atoms):
 	'''
 	return data
 
+def building_connections(Al_index, N_list):
+	'Al_index - index of Al atom'
+	
+	test = {}
+	local_NL = individual_NL(Al_index, N_list)
+	aN   = local_NL['Si']['N']
+	combined_list = []
+	
+	test['N'] = aN
+
+	for index in test['N']:
+		z = individual_NL(index, N_list)
+		test['NN'] = {}
+		test['NN'] = z['Si']['N']
+
+	for index in test['NN']:
+		z = individual_NL(index, N_list)
+		test['NNN'] = {}
+		test['NNN'] = z['Si']['N']
+
+	for index in test['NNN']:
+		z = individual_NL(index, N_list)
+		test['NNNN'] = {}
+		test['NNNN'] = z['Si']['N']
+
+	for index in test['NNNN']:
+		z = individual_NL(index, N_list)
+		test['NNNNN'] = {}
+		test['NNNNN'] = z['Si']['N']
+
+	#for index in test['NNNNN']:
+	#	z = individual_NL(index, N_list)
+	#	test['NNNNNN'] = {}
+	#	test['NNNNNN'] = z['Si']['N']
+
+	print(test)
+	exit()
+	for index in test['NNNNN']:
+		z = individual_NL(index, N_list)
+		for i in z['Si']['N']:
+			if i == Al_index:
+				print('6 MR')
+				print(index)
+				print(test['NNNN'])
+				key_list = list(test['NNNN'].keys())
+				val_list = list(test['NNNN'].values())
+				print(key_list[val_list.index(index)])
+
+def building(Al_index, N_list):
+	'''
+	Al_index - index of Al atom
+	explain list: [Al, N, NN, NNN, ...]
+	'''
+
+	store = [] 
+
+	'Al N list'
+	Al_NL = individual_NL(Al_index, N_list)['Si']['N']
+	for index in Al_NL:
+		store.append([Al_index, index])
+	
+	'Develop neighbor lists based on the last item of each list'
+	for n in range(0,5):
+		updated_store, store = deepcopy(store),[]
+		for sub_list in updated_store:
+			for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
+				'add to the list based on the neighbor last item in the list'
+				tmp = deepcopy(sub_list)
+				tmp.append(index)
+				store.append(tmp)
+
+	for i in store:
+		print(i)
+	'''
+	'Al NN list'
+	updated_store = deepcopy(store)
+	store   = [] #clear store
+	for sub_list in updated_store:
+		for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
+			'add to the list based on the neighbor last item in the list'
+			tmp = deepcopy(sub_list)
+			tmp.append(index)
+			store.append(tmp)
+
+	'Al NNN list'
+	updated_store = deepcopy(store)
+	store   = [] #clear store
+	for sub_list in updated_store:
+		for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
+			'add to the list based on the neighbor last item in the list'
+			tmp = deepcopy(sub_list)
+			tmp.append(index)
+			store.append(tmp)
+
+	'Al NNNN list'
+	updated_store = deepcopy(store)
+	store   = [] #clear store
+	for sub_list in updated_store:
+		for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
+			'add to the list based on the neighbor last item in the list'
+			tmp = deepcopy(sub_list)
+			tmp.append(index)
+			store.append(tmp)
+
+	print('NNN list')
+	for y in store:
+		print(y)
+	'''
+		
+	'''
+	for L in combined_list:
+		#print(L)
+		if len(L)>1:
+			L_n = individual_NL(L[-1], N_list)
+			#print(L_n['Si']['N'])
+			for e in L_n['Si']['N']:
+				#print(e)
+				#new = L.append(e)
+				#updated.append(L+list(str(e)))
+				new = []
+				new = L+list(str(e))
+				#print('Here', L, e)
+				updated.append(new)
+
+	'''
+
+	exit()
+	
+	'''
+	for index in test['N']:
+		z = individual_NL(index, N_list)
+		test['NN'] = {}
+		test['NN'] = z['Si']['N']
+
+	for index in test['NN']:
+		z = individual_NL(index, N_list)
+		test['NNN'] = {}
+		test['NNN'] = z['Si']['N']
+
+	for index in test['NNN']:
+		z = individual_NL(index, N_list)
+		test['NNNN'] = {}
+		test['NNNN'] = z['Si']['N']
+
+	for index in test['NNNN']:
+		z = individual_NL(index, N_list)
+		test['NNNNN'] = {}
+		test['NNNNN'] = z['Si']['N']
+
+	#for index in test['NNNNN']:
+	#	z = individual_NL(index, N_list)
+	#	test['NNNNNN'] = {}
+	#	test['NNNNNN'] = z['Si']['N']
+
+	print(test)
+	exit()
+	for index in test['NNNNN']:
+		z = individual_NL(index, N_list)
+		for i in z['Si']['N']:
+			if i == Al_index:
+				print('6 MR')
+				print(index)
+				print(test['NNNN'])
+				key_list = list(test['NNNN'].keys())
+				val_list = list(test['NNNN'].values())
+				print(key_list[val_list.index(index)])
+
+	'''
+
+
+
 def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 	'''
 	Objective:
@@ -390,9 +584,13 @@ def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 			else:
 				data[traj]['qm_region'].append(i)
 
-	'identify remaining atoms in the 6/8 MR'
 	if len(Al_atoms) == 2:
-		data = connecting(data, N_list, traj, atoms, Al_atoms[0], Al_atoms[1])
+		building(Al_atoms[0], N_list)
+		building(Al_atoms[1], N_list)
+		
+	'identify remaining atoms in the 6/8 MR'
+	#if len(Al_atoms) == 2:
+	#	data = connecting(data, N_list, traj, atoms, Al_atoms[0], Al_atoms[1])
 
 	'identify O atoms connected to two Si in the qm region (only ones not accounted for yet)'
 	for item in N_list:
