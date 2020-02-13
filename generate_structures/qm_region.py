@@ -3,6 +3,7 @@ import pickle, os
 from functions import *
 
 def individual_NL(index, N_list):	
+	'creates a neighboring list for atom of interest (needs only atom index and complete NL'
 	n_list = {} #loca neighbor list specific to Si atoms next to O next to terminal Si
 	n_list['Si'], n_list['O'] = {},{}
 	n_list['Si']['N'], n_list['O']['N'] = [],[]
@@ -16,28 +17,10 @@ def individual_NL(index, N_list):
 	
 	return n_list
 
-def it_it_MR_4(atoms, candidate_Si, Al1, Al2, N_list, data, traj):
-
-	outcome = False
-	z = individual_NL(candidate_Si, N_list)
-	for ii in z['Si']['NN']:
-		zzz = 0
-		nn = individual_NL(ii, N_list)
-		for jj in nn['Si']['N']:
-			if jj in z['Si']['N']:
-				if jj in data[traj]['qm_region']:
-					zzz +=1
-		if zzz == 2:
-			outcome = True
-			break
-	print(z['Si']['N'], nn['Si']['N'])
-	print(outcome)
-	return outcome
-
-def MR_4(atoms, Al1, Al2, N_list, data, traj):
-	'''finds if the Al-Al pair is in a 4 MR or not
+def MR_4(Al1, Al2, N_list, data, traj):
+	'''
+	Finds if the Al-Al pair is in a 4 MR or not
 	Inputs:
-		atoms  - ase atoms object
 		Al1    - index of Al atom
 		Al2    - index of second Al atom
 		N_list - dict of complete neighbor list
@@ -45,7 +28,7 @@ def MR_4(atoms, Al1, Al2, N_list, data, traj):
 		traj   - name of traj file associated with dict
 	Outputs:
 		4MR - Al-Al pair are in a 4 MR
-		''- Al-Al pair not in a 4 MR
+		''  - Al-Al pair not in a 4 MR
 	'''
 
 	outcome = '' 			#assume at the beginning not in a 4 MR
@@ -57,6 +40,33 @@ def MR_4(atoms, Al1, Al2, N_list, data, traj):
 	if len(mutual_Si) == 2:
 		'if two mutual atoms in the two Al neighbor list, it means it is in a 4 MR'
 		outcome = '4MR'
+		print('4 MR')
+
+	return outcome
+
+def MR_4_Si(atoms, Si, N_list, data, traj):
+	'''finds if Si is in a 4 MR
+	Inputs:
+		atoms  - ase atoms object
+		Si    - index of Si atom of interest
+		N_list - dict of complete neighbor list
+		data   - json data file for all calculations
+		traj   - name of traj file associated with dict
+	Outputs:
+		
+	'''
+
+	outcome = False				
+	Si_n = individual_NL(Si, N_list)	#neighbor list of Si
+	
+	for i in Si_n['Si']['NN']:
+		'find mutual neighbors between Si and NN'
+		test_n = individual_NL(i, N_list)
+		mutual = list( set(Si_n['Si']['N']) & set(test_n['Si']['N']) ) #find mutual elemments in neighbor
+		if len(mutual) == 2:
+			'check that both are in qm region >> to be added'
+			if all(x in data[traj]['qm_region'] for x in mutual) == True:
+				outcome = True
 
 	return outcome
 
@@ -72,19 +82,74 @@ def middle_connect(Si_number, Al_number, N_list):
 
 	return output
 
+def MR_6_NN(atoms, Al1, Al2, N_list, data, traj):	
+	'''finds Si atom missing in qm region in 6 MR where Al atoms in NN
+	Inputs:
+		atoms  - ase atoms object
+		Al1    - index of Al atom
+		Al2    - index of second Al atom
+		N_list - dict of complete neighbor list
+		data   - json data file for all calculations
+		traj   - name of traj file associated with dict
+	Outputs:
+		adds Si atom (if it is found) to data[traj]['qm_region']
+	'''
+
+	test_list = {}	#dict with entries (atom indexes to be tested) and a list of connecting atoms
+	Al1_n = individual_NL(Al1, N_list)	#neighbor list of Al1
+	#Al2_n = individual_NL(Al2, N_list)	#neighbor list of Al2
+
+	for i in Al1_n['Si']['NN']:
+		'start with Al'
+		if i not in data[traj]['qm_region']:
+			'find NN not in qm region and add it to a list to be checked later'
+			test_list[i] = []
+			j = middle_connect(Al1, i, N_list)	#Si atom connecting Al and NN Si
+			test_list[i] = [Al1, j, i]		#add to the list Al, NN Si and connecting Si
+
+		for element in test_list:
+			'check if the Si elment has Al2 as NN. If so, add connecting Si to test list'
+			Si = middle_connect(element, Al2, N_list)
+			tmp = False
+			n   = individual_NL(element, N_list)
+			for i in n['Si']['N']:
+				if i in data[traj]['qm_region']:
+					if Si == i:
+						test_list[element].append(i)
+						tmp = True
+			if tmp == True:
+				'if it found NN Al, add Al1 to the test list'
+				test_list[element].append(Al2)
+
+		for element in test_list:
+			if len(test_list[element]) == 5:
+				'it has 5 elements connecting (two Al, 3 Si)'
+				'no need to consider Si between two Al because we know it exists (structure is NN)'
+				if test_list not in data[traj]['qm_region']: 
+					a = MR_4_Si(atoms, element, N_list, data, traj)
+					if a == False:
+						'check it is not in a 4 MR'
+						print('6 MR NN', element)
+						data[traj]['qm_region'].append(element)
+
+	return data
+
+
 def connecting(data, N_list, traj, atoms, Al1, Al2):
 
 	Al_list1 = individual_NL(Al1, N_list)
 	Al_list2 = individual_NL(Al2, N_list)
 
 	MR = ''
-	MR = MR_4(atoms, Al1, Al2, N_list, data, traj)
+	MR = MR_4(Al1, Al2, N_list, data, traj)
 	
 	if MR != '4MR':
 	
 		'6 MR'
 		#test1,test2,test3,test4,test5 = [],[],[],[],[]
 		#test1,test2,test3,test4,test5 = {},{},{},{},{}
+		data =  MR_6_NN(atoms, Al1, Al2, N_list, data, traj)
+		'''
 		test = {}
 
 		'start with Al (zero)'
@@ -146,7 +211,7 @@ def connecting(data, N_list, traj, atoms, Al1, Al2):
 
 	#print(test)
 			
-			
+	'''
 		n = individual_NL(p, N_list)
 		for i in n['Si']['N']:
 			if i in data[traj]['qm_region']:
