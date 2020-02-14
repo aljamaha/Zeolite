@@ -58,29 +58,59 @@ def MR_4_Si_Si(Si1, Si2, N_list, qm_region):
 		False - Si-Si pair not in a 4 MR
 	'''
 
+	store = [] 	#list of connections from Al_index until x NN [Al, N, NN, NNN, ..]
+	outcome = False
+
+	'Si neighbor list list'
+	Si1_NL = individual_NL(Si1, N_list)['Si']['N']
+	for index in Si1_NL:
+		store.append([Si1, index])
+	
+	#copy_store = deepcopy(store)
+	#store = []
+	'Develop neighbor lists based on the last item of each list'
+	for n in range(0, 3): 
+		copy_store, store = deepcopy(store),[]
+		for sub_list in copy_store:
+			for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
+				'add to the list based on the neighbor last item in the sub_list'
+				tmp = deepcopy(sub_list)
+				tmp.append(index)
+				store.append(tmp)
+
+	for sub_list in store:
+		if sub_list[-1] == Si1 and sub_list[1] == Si2:
+			if sub_list[2] in qm_region and sub_list[3] in qm_region:
+				if repeated_MR_item(sub_list) == False:
+					outcome = True
+					#print(sub_list)
+
+
+	'''
 	outcome = False			#assume at the beginning not in a 4 MR
 	remaining_4MR = []		#the two other remaining T-atoms in the 4 MR (if it exists)
-	test1 = False
-	test2 = False
-	test3 = False
-	test4 = False
+	test1, test2, test3, test4 = 'fail', 'fail', 'fail', 'fail'		#must pass all those tests
 	
 	Si1_n = individual_NL(Si1, N_list)	#neighbor list of Al1
 	Si2_n = individual_NL(Si2, N_list)	#neighbor list of Al2
 
-	'Si - Si neighbors?'
+	'check Si1 and Si2 are neighbors'
 	for si in Si1_n['Si']['N']:
 		if si == Si2:
 			test1 = True
 
+	'check Si1[NN] and Si2[N] are neighbors'
 	if test1 == True:
 		for si1_nn in Si1_n['Si']['NN']:
 			for si2_n in Si2_n['Si']['N']:
 				if si1_nn == si2_n:
 					for m in Si2_n['Si']['N']:
 						if m == si1_nn:
-							remaining_4MR.append(si1_nn)
-							test2 = True
+							if m != Si2:
+								remaining_4MR.append(si1_nn)
+								test2 = True
+
+	print('remaining 4 MR:', remaining_4MR)
 
 	if test2 == True:	
 		for si2_nn in Si2_n['Si']['NN']:
@@ -92,17 +122,27 @@ def MR_4_Si_Si(Si1, Si2, N_list, qm_region):
 							test3 = True
 	if test3 == True:
 		if len(remaining_4MR) == 2:
-			if remaining_4MR[0] in individual_NL(remaining_4MR[1], N_list)['Si']['N']:
 				test4 = True
 
-	print('qm region:', qm_region)
-	print('remaining:', remaining_4MR)
+	#print('qm region:', qm_region)
+	#print('remaining:', remaining_4MR)
 
-	if test4 == True:
-		if all(x in qm_region for x in remaining_4MR) == True:
-			outcome = True
+	mr = 0
+	for j in remaining_4MR:
+		if j != Si1 and j != Si2:
+			if j in qm_region:
+				mr+=1
 
-	print(test4)
+	#print(mr)
+	if mr > 1:
+		outcome = True
+		
+	#if test4 == True:
+	#	if all(x in qm_region for x in remaining_4MR) == True:
+	#		outcome = True
+
+	#print(test4)
+	'''
 
 	return outcome
 
@@ -304,7 +344,7 @@ def MR_8(store, Al_index, Al2, data, traj, N_list):
 			candidates4.append(Si)
 			#print('8 MR!', Si)
 
-	print('candidates: ', candidates4)
+	#print('candidates: ', candidates4)
 
 	no_add = []
 	for item1 in candidates4: 
@@ -316,7 +356,13 @@ def MR_8(store, Al_index, Al2, data, traj, N_list):
 						no_add.append(item1)
 					if item2 not in no_add:
 						no_add.append(item2)
-	print('fail: ', no_add)
+
+	for k in candidates4:
+		if k not in no_add:
+			data[traj]['qm_region'].append(k)
+			print('8 MR!', k)
+			
+	#print('fail: ', no_add)
 
 			
 		
@@ -531,7 +577,7 @@ def repeated_MR_item(MR_list):
 	'''
 
 	outcome = False
-	MR_list = MR_list[1:-1] #since first and last element should be the same
+	MR_list = MR_list[1:] #since first and last element should be the same
 
 	a = set([x for x in MR_list if MR_list.count(x) > 1])
 	if len(a) > 0:
