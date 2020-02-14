@@ -44,6 +44,68 @@ def MR_4(Al1, Al2, N_list, data, traj):
 
 	return outcome
 
+def MR_4_Si_Si(Si1, Si2, N_list, qm_region):
+	'''
+	Finds if the Si-Si (next to each other) pair is in a 4 MR and the remaining two items in the 4 MR are in qm region
+	Inputs:
+		Si1    - index of Al atom
+		Si2    - index of second Al atom
+		N_list - dict of complete neighbor list
+		data   - json data file for all calculations
+		traj   - name of traj file associated with dict
+	Outputs:
+		True  - Si-Si pair are in a 4 MR
+		False - Si-Si pair not in a 4 MR
+	'''
+
+	outcome = False			#assume at the beginning not in a 4 MR
+	remaining_4MR = []		#the two other remaining T-atoms in the 4 MR (if it exists)
+	test1 = False
+	test2 = False
+	test3 = False
+	test4 = False
+	
+	Si1_n = individual_NL(Si1, N_list)	#neighbor list of Al1
+	Si2_n = individual_NL(Si2, N_list)	#neighbor list of Al2
+
+	'Si - Si neighbors?'
+	for si in Si1_n['Si']['N']:
+		if si == Si2:
+			test1 = True
+
+	if test1 == True:
+		for si1_nn in Si1_n['Si']['NN']:
+			for si2_n in Si2_n['Si']['N']:
+				if si1_nn == si2_n:
+					for m in Si2_n['Si']['N']:
+						if m == si1_nn:
+							remaining_4MR.append(si1_nn)
+							test2 = True
+
+	if test2 == True:	
+		for si2_nn in Si2_n['Si']['NN']:
+			for si1_n in Si1_n['Si']['N']:
+				if si2_nn == si1_n:
+					for m in Si1_n['Si']['N']:
+						if m == si1_n:
+							remaining_4MR.append(si2_nn)
+							test3 = True
+	if test3 == True:
+		if len(remaining_4MR) == 2:
+			if remaining_4MR[0] in individual_NL(remaining_4MR[1], N_list)['Si']['N']:
+				test4 = True
+
+	print('qm region:', qm_region)
+	print('remaining:', remaining_4MR)
+
+	if test4 == True:
+		if all(x in qm_region for x in remaining_4MR) == True:
+			outcome = True
+
+	print(test4)
+
+	return outcome
+
 def MR_4_Si(Si, N_list, data, traj):
 	'''
 	Finds if Si is in a 4 MR
@@ -179,7 +241,7 @@ def MR_8_NNN(Al1, Al2, N_list, data, traj):
 
 def MR_8(store, Al_index, Al2, data, traj, N_list):
 	'adding missing atoms in an 8 MR'
-	candidates = []
+	candidates = {}
 	for sub_list in store:
 		tmp_Al = False		#check Al1 appear twice in the 8 MR	
 		Al2_appears = False	#check Al2 appear in the 8 MR
@@ -201,16 +263,17 @@ def MR_8(store, Al_index, Al2, data, traj, N_list):
 							'add it only if not in the qm region'
 							if MR_4_Si(i, N_list, data, traj) == False:
 								'check not a member of a 4MR'
-								candidates.append(i)
+								#candidates.append(i)
+								candidates[i] = sub_list
 								#data[traj]['qm_region'].append(i)
 								#print('8 MR!', i, sub_list, qm)
 
 	'check for candidates to be added, they have two connections to the qm region'
 	'eliminates dangling Si'
 	'first test ...'
-	qm_candidates = candidates + data[traj]['qm_region']
+	qm_candidates = list(candidates.keys()) + data[traj]['qm_region']
 	candidates2 = []
-	for Si in candidates:
+	for Si in list(candidates.keys()):
 		Si_n = individual_NL(Si, N_list)['Si']['N']
 		n_in_qm = 0
 		for neighbor in Si_n:
@@ -219,10 +282,10 @@ def MR_8(store, Al_index, Al2, data, traj, N_list):
 		if n_in_qm > 1:
 			if Si not in data[traj]['qm_region']:
 				candidates2.append(Si)
-				#data[traj]['qm_region'].append(Si)
-				#print('8 MR!', Si)
+
 	'second test ..'	
 	qm_candidates = candidates2 + data[traj]['qm_region']
+	candidates3 = []
 	for Si in candidates2:
 		Si_n = individual_NL(Si, N_list)['Si']['N']
 		n_in_qm = 0
@@ -231,10 +294,32 @@ def MR_8(store, Al_index, Al2, data, traj, N_list):
 				n_in_qm += 1
 		if n_in_qm > 1:
 			if Si not in data[traj]['qm_region']:
-				data[traj]['qm_region'].append(Si)
-				print('8 MR!', Si)
+				candidates3.append(Si)
+				#print(all(x in data[traj]['qm_region'] for x in candidates[Si]))
 
+	candidates4 = []
+	for Si in candidates3:
+		if all(x in data[traj]['qm_region'] + candidates3 for x in candidates[Si]) == True:
+			#data[traj]['qm_region'].append(Si)
+			candidates4.append(Si)
+			#print('8 MR!', Si)
 
+	print('candidates: ', candidates4)
+
+	no_add = []
+	for item1 in candidates4: 
+		for item2 in candidates4:
+			if item1 != item2:
+				results = MR_4_Si_Si(item1, item2, N_list, candidates4+data[traj]['qm_region'])
+				if results == True:
+					if item1 not in no_add:
+						no_add.append(item1)
+					if item2 not in no_add:
+						no_add.append(item2)
+	print('fail: ', no_add)
+
+			
+		
 	return data
 
 def connecting(data, N_list, traj, atoms, Al1, Al2):
