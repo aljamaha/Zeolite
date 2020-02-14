@@ -5,7 +5,8 @@ from copy import deepcopy
 
 def individual_NL(index, N_list):	
 	'creates a neighboring list for atom of interest (needs only atom index and complete NL'
-	n_list = {} #loca neighbor list specific to Si atoms next to O next to terminal Si
+
+	n_list = {} #local neighbor list specific to Si atoms next to O next to terminal Si
 	n_list['Si'], n_list['O'] = {},{}
 	n_list['Si']['N'], n_list['O']['N'] = [],[]
 	n_list['Si']['NN'], n_list['O']['NN'] = [],[]
@@ -18,9 +19,9 @@ def individual_NL(index, N_list):
 	
 	return n_list
 
-def MR_4(Al1, Al2, N_list, data, traj):
+def MR_4_AlAl(Al1, Al2, N_list, data, traj):
 	'''
-	Finds if the Al-Al pair is in a 4 MR or not
+	Finds if the Al-Al pair is in a 4 MR or not (assumes Al-Al pair in NN position)
 	Inputs:
 		Al1    - index of Al atom
 		Al2    - index of second Al atom
@@ -66,8 +67,6 @@ def MR_4_Si_Si(Si1, Si2, N_list, qm_region):
 	for index in Si1_NL:
 		store.append([Si1, index])
 	
-	#copy_store = deepcopy(store)
-	#store = []
 	'Develop neighbor lists based on the last item of each list'
 	for n in range(0, 3): 
 		copy_store, store = deepcopy(store),[]
@@ -83,66 +82,6 @@ def MR_4_Si_Si(Si1, Si2, N_list, qm_region):
 			if sub_list[2] in qm_region and sub_list[3] in qm_region:
 				if repeated_MR_item(sub_list) == False:
 					outcome = True
-					#print(sub_list)
-
-
-	'''
-	outcome = False			#assume at the beginning not in a 4 MR
-	remaining_4MR = []		#the two other remaining T-atoms in the 4 MR (if it exists)
-	test1, test2, test3, test4 = 'fail', 'fail', 'fail', 'fail'		#must pass all those tests
-	
-	Si1_n = individual_NL(Si1, N_list)	#neighbor list of Al1
-	Si2_n = individual_NL(Si2, N_list)	#neighbor list of Al2
-
-	'check Si1 and Si2 are neighbors'
-	for si in Si1_n['Si']['N']:
-		if si == Si2:
-			test1 = True
-
-	'check Si1[NN] and Si2[N] are neighbors'
-	if test1 == True:
-		for si1_nn in Si1_n['Si']['NN']:
-			for si2_n in Si2_n['Si']['N']:
-				if si1_nn == si2_n:
-					for m in Si2_n['Si']['N']:
-						if m == si1_nn:
-							if m != Si2:
-								remaining_4MR.append(si1_nn)
-								test2 = True
-
-	print('remaining 4 MR:', remaining_4MR)
-
-	if test2 == True:	
-		for si2_nn in Si2_n['Si']['NN']:
-			for si1_n in Si1_n['Si']['N']:
-				if si2_nn == si1_n:
-					for m in Si1_n['Si']['N']:
-						if m == si1_n:
-							remaining_4MR.append(si2_nn)
-							test3 = True
-	if test3 == True:
-		if len(remaining_4MR) == 2:
-				test4 = True
-
-	#print('qm region:', qm_region)
-	#print('remaining:', remaining_4MR)
-
-	mr = 0
-	for j in remaining_4MR:
-		if j != Si1 and j != Si2:
-			if j in qm_region:
-				mr+=1
-
-	#print(mr)
-	if mr > 1:
-		outcome = True
-		
-	#if test4 == True:
-	#	if all(x in qm_region for x in remaining_4MR) == True:
-	#		outcome = True
-
-	#print(test4)
-	'''
 
 	return outcome
 
@@ -362,10 +301,6 @@ def MR_8(store, Al_index, Al2, data, traj, N_list):
 			data[traj]['qm_region'].append(k)
 			print('8 MR!', k)
 			
-	#print('fail: ', no_add)
-
-			
-		
 	return data
 
 def connecting(data, N_list, traj, atoms, Al1, Al2):
@@ -384,7 +319,7 @@ def connecting(data, N_list, traj, atoms, Al1, Al2):
 	Al_list2 = individual_NL(Al2, N_list)
 
 	MR = ''
-	MR = MR_4(Al1, Al2, N_list, data, traj)
+	MR = MR_4_AlAl(Al1, Al2, N_list, data, traj)
 	
 	if MR != '4MR':
 		'make sure Al-Al pair not in a 4 MR'
@@ -398,171 +333,6 @@ def connecting(data, N_list, traj, atoms, Al1, Al2):
 			if data[traj]['N'] == 'NNN':
 				data, MR = MR_8_NNN(Al1, Al2, N_list, data, traj)
 
-	return data
-
-
-def terminal_atoms(data, N_list, traj, atoms):
-	'''
-	identify remaining atoms in the 6/8 MR
-	inputs:
-		data
-		N_list (neighbor list for all atoms)
-		traj  : name of the traj of the structure
-		atoms : ase objects atoms
-	outputs: 
-		updated data with remaining members of 6/8 MR (if available)
-	'''
-	terminal = {}
-	terminal['Si']         = [] #terminal Si in QM region
-	terminal['O-Si']       = [] #oxygen connected to terminal Si in QM regiona
-	terminal['Si-O-Si(t)'] = [] #Si connected to oxygen connected to terminal Si
-
-	'identify Al atoms'
-	Al_atoms = []
-	for index, atom in enumerate(atoms):
-		if atom.symbol == 'Al':
-			Al_atoms.append(index)
-
-	for item in data[traj]['qm_region']:
-		'identify terminal Si (connected to only one O in qm region)'
-		if atoms[item].symbol == 'Si':
-			O_connections = 0
-			for n in N_list[item]:
-				if n in data[traj]['qm_region']:
-					O_connections += 1
-			if O_connections == 1:
-				terminal['Si'].append(item)
-
-	for item in terminal['Si']:
-		'identify O next to terminal Si'
-		for n in N_list[item]:
-			if n not in terminal['O-Si']:
-				terminal['O-Si'].append(n)
-
-	for item in terminal['O-Si']:
-		'identify Si connected to oxygen connected to terminal Si'
-		for n in N_list[item]:
-			if n not in terminal['Si-O-Si(t)']:
-				terminal['Si-O-Si(t)'].append(n)
-
-	for item in terminal['Si-O-Si(t)']:
-		'Si atom has to be connected to the 6/8 MR to be included in the qm region'	
-		n_list = {} #loca neighbor list specific to Si atoms next to O next to terminal Si
-		n_list['Si'], n_list['O'] = {},{}
-		n_list['Si']['N'], n_list['O']['N'] = [],[]
-		n_list['Si']['NN'], n_list['O']['NN'] = [],[]
-		n_list['Si']['NNN'], n_list['O']['NNN'] = [],[]
-		n_list = identify_N(N_list[item], N_list, n_list, item)
-		n_list = identify_NN_O(n_list, N_list )
-		n_list = identify_NN_Si(n_list, N_list)
-		n_list = identify_NNN_O(N_list, n_list)
-		n_list = identify_NNN_Si(N_list, n_list)
-		
-		'6 MR (NN): Do two Al appear twice in NN list? Is it not too close to both Al atoms?'
-		Al_neighbor = []
-		for n in n_list['Si']['NN']:
-			if atoms[n].symbol == 'Al':
-				if n not in Al_neighbor:
-					Al_neighbor.append(n)
-		pass_distance = True
-		if len(Al_neighbor) >1:
-			'if it passes first test of NN from both Al, check distance from Al atoms is not too short'
-			for a in Al_neighbor:
-				d = atoms.get_distance(a,item)	
-				if d < 5:
-					pass_distance = False
-			if pass_distance == True:	
-				print('6 MR items added')
-				data[traj]['qm_region'].append(item)
-
-		'8 MR (NNN): Do two Al appear in NN and NNN (one in each)'
-		if data[traj]['N'] == 'NNN':
-			'only use it on NNN'
-			Al = {}
-			Al['NN'],Al['NNN'] = [],[]
-			for n in n_list['Si']['NN']:
-				if atoms[n].symbol == 'Al':
-					if n not in Al['NN']:
-						Al['NN'].append(n)
-			for n in n_list['Si']['NNN']:	
-				if atoms[n].symbol == 'Al':
-					if n not in Al['NNN']:
-						Al['NNN'].append(n)
-			pass_distance = True
-			if len(Al['NN']) == 1 and len(Al['NNN']) == 1:
-				for a in Al_neighbor:
-					d = atoms.get_distance(a,item)	
-					if d < 5.55:
-						pass_distance = False
-				if pass_distance == True:	
-					print('add to 8 MR NNN')
-					data[traj]['qm_region'].append(item)
-			
-		
-		'8 MR (NN): Do two Al appear twice in NN list? Is it not too close to both Al atoms?'
-		if data[traj]['N'] == 'NN':
-			Al_NNN = []
-			for n in n_list['Si']['NNN']:
-				if atoms[n].symbol == 'Al':
-					if n not in Al_NNN:
-						Al_NNN.append(n)	
-			pass_distance = True
-			if len(Al_NNN) == 2:
-				for a in Al_neighbor:
-					d = atoms.get_distance(a,item)	
-					if d < 5.5:
-						pass_distance = False
-				if pass_distance == True:	
-					print('wow!')
-					data[traj]['qm_region'].append(item)
-
-	'''	
-	for entry in terminal['Si']:
-
-		n_list = {} #neighbor list
-		n_list['Si'], n_list['O'] = {},{}
-		n_list['Si']['N'], n_list['O']['N'] = [],[]
-		n_list['Si']['NN'], n_list['O']['NN'] = [],[]
-		n_list['Si']['NNN'], n_list['O']['NNN'] = [],[]
-		n_list = identify_N(N_list[entry], N_list, n_list, entry)
-		n_list = identify_NN_O(n_list, N_list )
-		n_list = identify_NN_Si(n_list, N_list)
-		n_list = identify_NNN_O(N_list, n_list)
-		n_list = identify_NNN_Si(N_list, n_list)
-		
-		n_Al = 0
-		for j in n_list['Si']['NN']:
-			if atoms[j].symbol == 'Al': 
-				n_Al += 1
-		
-		if traj == "3.traj":	
-			print('position: ', atoms[entry].position)
-			print(entry, n_Al)
-			print(n_list)
-
-		if n_Al > 1:
-			print('add to qm region')
-			data[traj]['qm_region'].append(entry)
-
-	'''
-	'''
-	for item in terminal['Si']:
-		'identify O next to terminal Si'
-		for n in N_list[item]:
-			if n not in terminal['O-Si']:
-				terminal['O-Si'].append(n)
-	for item in terminal['O-Si']:
-		'identify Si connected to oxygen connected to terminal Si'
-		for n in N_list[item]:
-			terminal['Si-O-Si(t)'].append(n)
-
-	for item in terminal['Si-O-Si(t)']:
-		'if Si occured more than once, it is added '
-		n_count = terminal['Si-O-Si(t)'].count(item)
-		if n_count > 1:
-			if item not in data[traj]['qm_region']:
-				data[traj]['qm_region'].append(item)
-	'''
 	return data
 
 def repeated_MR_item(MR_list):
@@ -619,7 +389,7 @@ def building(Al_index, N_list, data, traj, Al2, n_MR_max):
 				store.append(tmp)
 
 	'check Al-Al not in a 4MR'	
-	MR = MR_4(Al_index, Al2, N_list, data, traj)
+	MR = MR_4_AlAl(Al_index, Al2, N_list, data, traj)
 	
 	if MR != '4MR':
 		'make sure Al-Al pair not in a 4 MR'
@@ -654,36 +424,6 @@ def building(Al_index, N_list, data, traj, Al2, n_MR_max):
 
 		if MR != '6MR': 
 			data = MR_8(store,  Al_index, Al2, data, traj, N_list)
-			'''
-			'adding missing atoms in an 8 MR'
-			for sub_list in store:
-				tmp_Al = False		#check Al1 appear twice in the 8 MR	
-				Al2_appears = False	#check Al2 appear in the 8 MR
-				if sub_list[-1] == Al_index:
-					'check if last element is returning back to original Al atom, closing a 8 MR'
-					for index in sub_list[1:-1]:
-						if index == Al_index:
-							'check Al atom doesnt appear twice in a 8 MR (mistaken 8 MR for an extended 4 MR)'
-							tmp_Al = True
-						if index == Al2:
-							'check Al2 appears in the 8 MR'
-							Al2_appears = True
-					if tmp_Al == False and Al2_appears == True:
-						'Al1 does not appear twice in the 8 MR and Al2 is part of the ring'
-						if repeated_MR_item(sub_list) == False:
-							'make sure no item in the list is repeated (not a full MR)'
-							for i in sub_list:
-								if i not in data[traj]['qm_region']:
-									'add it only if not in the qm region'
-									if MR_4_Si(i, N_list, data, traj) == False:
-										'check not a member of a 4MR'
-										data[traj]['qm_region'].append(i)
-										qm = 0
-										for x in sub_list[0:-1]:
-											if x in original_qm:
-												qm += 1
-										print('8 MR!', i, sub_list, qm)
-			'''	
 
 	return data
 				
@@ -728,8 +468,6 @@ def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 	'identify remaining atoms in the 6/8 MR'
 	if len(Al_atoms) == 2:
 		building(Al_atoms[0], N_list, data, traj, Al_atoms[1], n_MR_max = 8)
-		#building(Al_atoms[1], N_list, data, traj, Al_atoms[0], n_MR_max = 8)
-		
 
 	'identify O atoms connected to two Si in the qm region (only ones not accounted for yet)'
 	for item in N_list:
