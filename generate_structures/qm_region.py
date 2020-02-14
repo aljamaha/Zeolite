@@ -177,7 +177,65 @@ def MR_8_NNN(Al1, Al2, N_list, data, traj):
 	
 	return data, MR
 
+def MR_8(store, Al_index, Al2, data, traj, N_list):
+	'adding missing atoms in an 8 MR'
+	candidates = []
+	for sub_list in store:
+		tmp_Al = False		#check Al1 appear twice in the 8 MR	
+		Al2_appears = False	#check Al2 appear in the 8 MR
+		if sub_list[-1] == Al_index:
+			'check if last element is returning back to original Al atom, closing a 8 MR'
+			for index in sub_list[1:-1]:
+				if index == Al_index:
+					'check Al atom doesnt appear twice in a 8 MR (mistaken 8 MR for an extended 4 MR)'
+					tmp_Al = True
+				if index == Al2:
+					'check Al2 appears in the 8 MR'
+					Al2_appears = True
+			if tmp_Al == False and Al2_appears == True:
+				'Al1 does not appear twice in the 8 MR and Al2 is part of the ring'
+				if repeated_MR_item(sub_list) == False:
+					'make sure no item in the list is repeated (not a full MR)'
+					for i in sub_list:
+						if i not in data[traj]['qm_region']:
+							'add it only if not in the qm region'
+							if MR_4_Si(i, N_list, data, traj) == False:
+								'check not a member of a 4MR'
+								candidates.append(i)
+								#data[traj]['qm_region'].append(i)
+								#print('8 MR!', i, sub_list, qm)
 
+	'check for candidates to be added, they have two connections to the qm region'
+	'eliminates dangling Si'
+	'first test ...'
+	qm_candidates = candidates + data[traj]['qm_region']
+	candidates2 = []
+	for Si in candidates:
+		Si_n = individual_NL(Si, N_list)['Si']['N']
+		n_in_qm = 0
+		for neighbor in Si_n:
+			if neighbor in qm_candidates:
+				n_in_qm += 1
+		if n_in_qm > 1:
+			if Si not in data[traj]['qm_region']:
+				candidates2.append(Si)
+				#data[traj]['qm_region'].append(Si)
+				#print('8 MR!', Si)
+	'second test ..'	
+	qm_candidates = candidates2 + data[traj]['qm_region']
+	for Si in candidates2:
+		Si_n = individual_NL(Si, N_list)['Si']['N']
+		n_in_qm = 0
+		for neighbor in Si_n:
+			if neighbor in qm_candidates:
+				n_in_qm += 1
+		if n_in_qm > 1:
+			if Si not in data[traj]['qm_region']:
+				data[traj]['qm_region'].append(Si)
+				print('8 MR!', Si)
+
+
+	return data
 
 def connecting(data, N_list, traj, atoms, Al1, Al2):
 	'''
@@ -396,7 +454,7 @@ def repeated_MR_item(MR_list):
 
 	return outcome
 
-def building(Al_index, N_list, data, traj, Al2):
+def building(Al_index, N_list, data, traj, Al2, n_MR_max):
 	'''
 	explain list: [Al, N, NN, NNN, ...]
 	Inputs:
@@ -405,12 +463,14 @@ def building(Al_index, N_list, data, traj, Al2):
 		data	 - global json data list
 		traj	 - name of traj file
 		Al2	 - index of second Al atom
+		n_MR_max - max number of elements in the MR (usually stops at 8)
 	Outputs:
 		In progress .. 
 		updated data[traj][qm_atom] wit missing atoms in 6/8 MR now included
 	'''
 
 	store = [] 	#list of connections from Al_index until x NN [Al, N, NN, NNN, ..]
+	original_qm = deepcopy(data[traj]['qm_region'])	#qm region before any atom is added
 
 	'Al neighbor list list'
 	Al_NL = individual_NL(Al_index, N_list)['Si']['N']
@@ -418,7 +478,7 @@ def building(Al_index, N_list, data, traj, Al2):
 		store.append([Al_index, index])
 	
 	'Develop neighbor lists based on the last item of each list'
-	for n in range(0,5):
+	for n in range(0, n_MR_max-1): 
 		copy_store, store = deepcopy(store),[]
 		for sub_list in copy_store:
 			for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
@@ -427,132 +487,75 @@ def building(Al_index, N_list, data, traj, Al2):
 				tmp.append(index)
 				store.append(tmp)
 
-	original_qm = deepcopy(data[traj]['qm_region'])	#qm region before any atom is added
+	'check Al-Al not in a 4MR'	
+	MR = MR_4(Al_index, Al2, N_list, data, traj)
+	
+	if MR != '4MR':
+		'make sure Al-Al pair not in a 4 MR'
 
-	'adding missing atoms in a 6 MR'
-	for sub_list in store:
-		tmp_Al = False		#check Al1 appear twice in the 6 MR	
-		Al2_appears = False	#check Al2 appear in the 6 MR
-		if sub_list[-1] == Al_index:
-			'check if last element is returning back to original Al atom, closing a 6 MR'
-			for index in sub_list[1:-1]:
-				if index == Al_index:
-					'check Al atom doesnt appear twice in a 6 MR (mistaken 6 MR for an extended 4 MR)'
-					tmp_Al = True
-				if index == Al2:
-					'check Al2 appears in the 6 MR'
-					Al2_appears = True
+		'adding missing atoms in a 6 MR'
+		for sub_list in store:
+			sub_list = sub_list[0:7] #since we are checking for a 6 MR
+			tmp_Al = False		#check Al1 appear twice in the 6 MR	
+			Al2_appears = False	#check Al2 appear in the 6 MR
+			if sub_list[-1] == Al_index:
+				'check if last element is returning back to original Al atom, closing a 6 MR'
+				for index in sub_list[1:-1]:
+					if index == Al_index:
+						'check Al atom doesnt appear twice in a 6 MR (mistaken 6 MR for an extended 4 MR)'
+						tmp_Al = True
+					if index == Al2:
+						'check Al2 appears in the 6 MR'
+						Al2_appears = True
 
-			if tmp_Al == False and Al2_appears == True:
-				'Al1 does not appear twice in the 6 MR and Al2 is part of the ring'
-				if repeated_MR_item(sub_list) == False:
-					'make sure no item in the list is repeated (not a full MR)'
-					for i in sub_list:
-						if i not in data[traj]['qm_region']:
-							'add it only if not in the qm region'
-							if MR_4_Si(i, N_list, data, traj) == False:
-								'check not a member of a 4MR'
-								data[traj]['qm_region'].append(i)
-								print('6 MR!', i, sub_list)
+				if tmp_Al == False and Al2_appears == True:
+					'Al1 does not appear twice in the 6 MR and Al2 is part of the ring'
+					if repeated_MR_item(sub_list) == False:
+						'make sure no item in the list is repeated (not a full MR)'
+						for i in sub_list:
+							if i not in data[traj]['qm_region']:
+								'add it only if not in the qm region'
+								if MR_4_Si(i, N_list, data, traj) == False:
+									'check not a member of a 4MR'
+									data[traj]['qm_region'].append(i)
+									print('6 MR!', i, sub_list)
+									MR  = '6MR'
+
+		if MR != '6MR': 
+			data = MR_8(store,  Al_index, Al2, data, traj, N_list)
+			'''
+			'adding missing atoms in an 8 MR'
+			for sub_list in store:
+				tmp_Al = False		#check Al1 appear twice in the 8 MR	
+				Al2_appears = False	#check Al2 appear in the 8 MR
+				if sub_list[-1] == Al_index:
+					'check if last element is returning back to original Al atom, closing a 8 MR'
+					for index in sub_list[1:-1]:
+						if index == Al_index:
+							'check Al atom doesnt appear twice in a 8 MR (mistaken 8 MR for an extended 4 MR)'
+							tmp_Al = True
+						if index == Al2:
+							'check Al2 appears in the 8 MR'
+							Al2_appears = True
+					if tmp_Al == False and Al2_appears == True:
+						'Al1 does not appear twice in the 8 MR and Al2 is part of the ring'
+						if repeated_MR_item(sub_list) == False:
+							'make sure no item in the list is repeated (not a full MR)'
+							for i in sub_list:
+								if i not in data[traj]['qm_region']:
+									'add it only if not in the qm region'
+									if MR_4_Si(i, N_list, data, traj) == False:
+										'check not a member of a 4MR'
+										data[traj]['qm_region'].append(i)
+										qm = 0
+										for x in sub_list[0:-1]:
+											if x in original_qm:
+												qm += 1
+										print('8 MR!', i, sub_list, qm)
+			'''	
+
 	return data
 				
-	'''
-	'Al NN list'
-	updated_store = deepcopy(store)
-	store   = [] #clear store
-	for sub_list in updated_store:
-		for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
-			'add to the list based on the neighbor last item in the list'
-			tmp = deepcopy(sub_list)
-			tmp.append(index)
-			store.append(tmp)
-
-	'Al NNN list'
-	updated_store = deepcopy(store)
-	store   = [] #clear store
-	for sub_list in updated_store:
-		for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
-			'add to the list based on the neighbor last item in the list'
-			tmp = deepcopy(sub_list)
-			tmp.append(index)
-			store.append(tmp)
-
-	'Al NNNN list'
-	updated_store = deepcopy(store)
-	store   = [] #clear store
-	for sub_list in updated_store:
-		for index in individual_NL(sub_list[-1], N_list)['Si']['N']:
-			'add to the list based on the neighbor last item in the list'
-			tmp = deepcopy(sub_list)
-			tmp.append(index)
-			store.append(tmp)
-
-	print('NNN list')
-	for y in store:
-		print(y)
-	'''
-		
-	'''
-	for L in combined_list:
-		#print(L)
-		if len(L)>1:
-			L_n = individual_NL(L[-1], N_list)
-			#print(L_n['Si']['N'])
-			for e in L_n['Si']['N']:
-				#print(e)
-				#new = L.append(e)
-				#updated.append(L+list(str(e)))
-				new = []
-				new = L+list(str(e))
-				#print('Here', L, e)
-				updated.append(new)
-
-	'''
-
-	
-	'''
-	for index in test['N']:
-		z = individual_NL(index, N_list)
-		test['NN'] = {}
-		test['NN'] = z['Si']['N']
-
-	for index in test['NN']:
-		z = individual_NL(index, N_list)
-		test['NNN'] = {}
-		test['NNN'] = z['Si']['N']
-
-	for index in test['NNN']:
-		z = individual_NL(index, N_list)
-		test['NNNN'] = {}
-		test['NNNN'] = z['Si']['N']
-
-	for index in test['NNNN']:
-		z = individual_NL(index, N_list)
-		test['NNNNN'] = {}
-		test['NNNNN'] = z['Si']['N']
-
-	#for index in test['NNNNN']:
-	#	z = individual_NL(index, N_list)
-	#	test['NNNNNN'] = {}
-	#	test['NNNNNN'] = z['Si']['N']
-
-	print(test)
-	exit()
-	for index in test['NNNNN']:
-		z = individual_NL(index, N_list)
-		for i in z['Si']['N']:
-			if i == Al_index:
-				print('6 MR')
-				print(index)
-				print(test['NNNN'])
-				key_list = list(test['NNNN'].keys())
-				val_list = list(test['NNNN'].values())
-				print(key_list[val_list.index(index)])
-
-	'''
-
-
-
 def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 	'''
 	Objective:
@@ -591,13 +594,11 @@ def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 			else:
 				data[traj]['qm_region'].append(i)
 
-	if len(Al_atoms) == 2:
-		building(Al_atoms[0], N_list, data, traj, Al_atoms[1])
-		building(Al_atoms[1], N_list, data, traj, Al_atoms[0])
-		
 	'identify remaining atoms in the 6/8 MR'
-	#if len(Al_atoms) == 2:
-	#	data = connecting(data, N_list, traj, atoms, Al_atoms[0], Al_atoms[1])
+	if len(Al_atoms) == 2:
+		building(Al_atoms[0], N_list, data, traj, Al_atoms[1], n_MR_max = 8)
+		#building(Al_atoms[1], N_list, data, traj, Al_atoms[0], n_MR_max = 8)
+		
 
 	'identify O atoms connected to two Si in the qm region (only ones not accounted for yet)'
 	for item in N_list:
