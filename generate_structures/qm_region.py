@@ -112,112 +112,6 @@ def MR_4_Si(Si, N_list, data, traj):
 
 	return outcome
 
-def middle_connect(Si_number, Al_number, N_list):
-	'''
-	Finds the middle atom connecting Si_number and Al_number (both are indicies)'
-	Input: index of Si atom and Al atom
-	Output:
-		'' - no single atom between the two atoms
-		index of of the middle atom (if exists)
-	'''
-
-	output = ''
-	Si_list = individual_NL(Si_number, N_list)
-	Al_list = individual_NL(Al_number, N_list)
-	
-	for i in Si_list['Si']['N']:
-		if i in Al_list['Si']['N']:
-			output = i
-
-	return output
-
-def MR_6_NN(Al1, Al2, N_list, data, traj):	
-	'''finds Si atom missing in qm region in 6 MR where Al atoms in NN
-	Inputs:
-		Al1    - index of Al atom
-		Al2    - index of second Al atom
-		N_list - dict of complete neighbor list
-		data   - json data file for all calculations
-		traj   - name of traj file associated with dict
-	Outputs:
-		adds Si atom (if it is found) to data[traj]['qm_region']
-		output - either '6MR' or '' if it is not a 6MR
-	'''
-
-	output = ''
-	test_list = {}	#dict with entries (atom indexes to be tested) and a list of connecting atoms
-	Al1_n = individual_NL(Al1, N_list)	#neighbor list of Al1
-
-	for i in Al1_n['Si']['NN']:
-		'start with Al'
-		if i not in data[traj]['qm_region']:
-			'find NN not in qm region and add it to a list to be checked later'
-			test_list[i] = []
-			j = middle_connect(Al1, i, N_list)	#Si atom connecting Al and NN Si
-			test_list[i] = [Al1, j, i]		#add to the list Al, NN Si and connecting Si
-
-		for element in test_list:
-			'check if the Si elment has Al2 as NN. If so, add connecting Si to test list'
-			Si = middle_connect(element, Al2, N_list)
-			tmp = False
-			n   = individual_NL(element, N_list)
-			for i in n['Si']['N']:
-				if i in data[traj]['qm_region']:
-					if Si == i:
-						test_list[element].append(i)
-						tmp = True
-			if tmp == True:
-				'if it found NN Al, add Al1 to the test list'
-				test_list[element].append(Al2)
-
-		for element in test_list:
-			if len(test_list[element]) == 5:
-				'it has 5 elements connecting (two Al, 3 Si)'
-				'no need to consider Si between two Al because we know it exists (structure is NN)'
-				if test_list not in data[traj]['qm_region']: 
-					a = MR_4_Si(element, N_list, data, traj)
-					if a == False:
-						'check it is not in a 4 MR'
-						print('6 MR NN', element)
-						data[traj]['qm_region'].append(element)
-						output = '6MR'
-
-	return data, output
-
-def MR_8_NNN(Al1, Al2, N_list, data, traj):	
-	'''finds Si atom missing in qm region in 8 MR where Al atoms in NNN
-	Inputs:
-		Al1    - index of Al atom
-		Al2    - index of second Al atom
-		N_list - dict of complete neighbor list
-		data   - json data file for all calculations
-		traj   - name of traj file associated with dict
-	Outputs:
-		adds Si atom (if it is found) to data[traj]['qm_region']
-		output - either '6MR' or '' if it is not a 6MR
-	'''	
-
-	Al_list1 = individual_NL(Al1, N_list)
-	Al_list2 = individual_NL(Al2, N_list)
-	MR = ''
-
-	for a1 in Al_list1['Si']['NN']:
-		a1_NL =  individual_NL(a1, N_list)
-		for a2 in Al_list2['Si']['NN']:
-			if a2 in a1_NL['Si']['N']:
-				if a1 not in data[traj]['qm_region'] and a2 not in data[traj]['qm_region']:
-					MR_a1 = MR_4_Si(a1, N_list, data, traj)
-					MR_a2 = MR_4_Si(a2, N_list, data, traj)
-					if MR_a1 == False and MR_a2 == False:
-						'terminal Si not in a 4 MR'
-						MR = '8 MR'
-						data[traj]['qm_region'].append(a1)	
-						data[traj]['qm_region'].append(a2)
-						print('8 MR NNN')	
-
-	
-	return data, MR
-
 def MR_8(store, Al_index, Al2, data, traj, N_list):
 	'adding missing atoms in an 8 MR'
 	candidates = {}
@@ -279,11 +173,7 @@ def MR_8(store, Al_index, Al2, data, traj, N_list):
 	candidates4 = []
 	for Si in candidates3:
 		if all(x in data[traj]['qm_region'] + candidates3 for x in candidates[Si]) == True:
-			#data[traj]['qm_region'].append(Si)
 			candidates4.append(Si)
-			#print('8 MR!', Si)
-
-	#print('candidates: ', candidates4)
 
 	no_add = []
 	for item1 in candidates4: 
@@ -301,38 +191,6 @@ def MR_8(store, Al_index, Al2, data, traj, N_list):
 			data[traj]['qm_region'].append(k)
 			print('8 MR!', k)
 			
-	return data
-
-def connecting(data, N_list, traj, atoms, Al1, Al2):
-	'''
-	Identifies missing atoms connecting 6/8 MR and adds them to QM region
-	Inputs:		
-		Al1    - index of Al atom
-		Al2    - index of second Al atom
-		N_list - dict of complete neighbor list
-		traj   - name of traj file associated with dict
-	Output:
-		data - updated with missing qm atoms in 6/8 MR
-	'''
-
-	Al_list1 = individual_NL(Al1, N_list)
-	Al_list2 = individual_NL(Al2, N_list)
-
-	MR = ''
-	MR = MR_4_AlAl(Al1, Al2, N_list, data, traj)
-	
-	if MR != '4MR':
-		'make sure Al-Al pair not in a 4 MR'
-	
-		'6 MR'
-		data, MR =  MR_6_NN(Al1, Al2, N_list, data, traj)
-
-		'8 MR'
-		if MR != '6MR':
-			'if it is not in a 4/6 MR'
-			if data[traj]['N'] == 'NNN':
-				data, MR = MR_8_NNN(Al1, Al2, N_list, data, traj)
-
 	return data
 
 def repeated_MR_item(MR_list):
