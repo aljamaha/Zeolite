@@ -9,11 +9,11 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc_start = 3
-calc_end   = 4
+calc_start = 2
+calc_end =  27
 job_type = 'opt' #either sp or opt
-calc_dir = '/home/aljama/CHA-full-MR/calculations/'
-create_input_dir = '//home/aljama/CHA-full-MR/create_input'
+calc_dir = '/home/aljama/CHA-full-MR-test/calculations/'
+create_input_dir = '//home/aljama/CHA-full-MR-test/create_input'
 
 exchange 	= 'omegab97x-d'
 cwd       = os.getcwd()
