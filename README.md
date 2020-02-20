@@ -13,6 +13,8 @@ In Progress ..
 Generate unique zeolite structures (1 or 2 Al atoms substituting Si, and adsorption sites for H/metal)
 ### syntax:
 `python main.py`
+- functions.py [common useful functions]
+- adsorbate.py [scripts specific to adding adsorbates]
 ### options:
 - choice of adsorbate (H, NH3, Pd)
 ### inputs:
