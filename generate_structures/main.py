@@ -6,9 +6,11 @@ from copy import deepcopy
 from molmod import *
 from functions import *
 from qm_region import qm_region
+from adsorbate import *
 
 '''
-Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate adsorption sites [H and metal]
+Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate adsorption site
+Includes options for H adsorption, Pd+1, NH3, and Pd+2
 '''
 
 'Inputs'
@@ -16,6 +18,7 @@ zeolite = io.read('../original_structures/CHA-T696.xyz')	#Zeolite structure
 Pd1 	= True  #generate structures of Pd+1 (if True)
 H_Z	= False	#generate structures of zeolites with H (if True)
 Pd2	= False #generates sturcture of zeolites with Pd+2 (if True)
+NH3	= False #genertes structures of zeolites with NH3 (if True)
 Al	= 0	#index of Si atom to be replaced by an Al atom			
 H_atoms = 192	#number of H atoms in original structure to account for terminal O
 calculations    = '/home/aljama/CHA-full-MR/calculations/' #folder containing calculations
@@ -75,49 +78,49 @@ if H_Z == True:
 
 '''Pd+2'''
 if Pd2 == True:
-	structures_so_far = list(data)
-	for structure in structures_so_far:
+	index, data = Pd2(data, calculations, struc_dir, index, total_original_atoms, N_list, H_atoms)
 
-		if data[structure]['oxidation'] == -2:
+'''Pd+1'''
+if Pd1 == True:
+	index, data = Pd1(data, struc_dir, N_list, H_atoms, index ,  total_original_atoms )
+
+'''NH3'''
+if NH3 == True:
+	'''
+	this needs to be adjusted
+structures_so_far = list(data)
+
+for structure in structures_so_far:
+
+	if data[structure]['oxidation'] == 0:
+
+		H_num = []	 #number of H atoms
+
+		try:
+			atoms = io.read(calculations+'/'+structure[0:-5]+'-opt-omegab97x-d-def2-svp/full-atoms.xyz')
+		except:
+			atoms    = io.read(struc_dir+'/'+structure)
+			print('optimized structure for {} is not found'.format(structure))
+
+		atoms_qm = data[structure]['qm_region']
+
+		for atom_num in atoms_qm:
+			if atoms[atom_num].symbol == 'H':
+				H_num.append(atom_num)
+
+		for H_atom in H_num:
+			'prints two structures based on nearest pore in each (8 MR and 6 MR)'
+			xyz_H        = atoms[H_atom].position
+			H_pos        = CHA_ads(xyz_H)
+			zeolite_copy = add_NH3(atoms, H_pos[2])
+			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')
+	'''
+
+'''identify qm region [repeated here because H in previous regions is needed for NO ads site'''
+for item in data:
+	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+
 		
-			n_Al = 0 #number of Al atoms, position of Al atoms	
-			Al_num = []	
-
-			try:
-				atoms = io.read(calculations+'/'+structure[0:-5]+'-opt-omegab97x-d-def2-svp/full-atoms.xyz')
-			except:
-				atoms    = io.read(struc_dir+'/'+structure)
-				print('optimized structure for {} is not found'.format(structure))
-
-			atoms_qm = data[structure]['qm_region']	
-
-			for atom_num in atoms_qm:
-				if atoms[atom_num].symbol == 'Al':
-					n_Al += 1
-					Al_num.append(atom_num)
-				
-			if n_Al == 1:
-				'n_Al should be of no interest here'
-
-				xyz_Al = atoms[Al_num[0]].position
-				Pd_pos = CHA_ads(xyz_pos)
-				zeolite_copy = add_metal(atoms, 'Pd', Pd_pos, 0) 
-				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
-
-			elif n_Al == 2:	
-				'add to both 6 and 8 MR'
-				add_Pd_pos = middle_of_2_Al(atoms[Al_num][0].position, atoms[Al_num][1].position)
-				Pd_pos = CHA_ads(add_Pd_pos)
-				zeolite_copy = add_metal(atoms, 'Pd', Pd_pos[0], 0) 
-				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')			
-				zeolite_copy = add_metal(atoms, 'Pd', Pd_pos[1], 0) 
-				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')
-
-	'''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
-	for item in data:
-		print('='*5,'\n', item)
-		data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
-
 '''save data'''
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
