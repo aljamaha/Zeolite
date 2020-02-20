@@ -1,4 +1,4 @@
-#!/Users/hassanaljama/opt/anaconda3/bin/python
+#!/home/mgcf/software-ws/anaconda/anaconda3/envs/molmod/bin/python
 
 import os
 from ase import io
@@ -9,14 +9,12 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc_start = 64
-calc_end   = 96
-multiplicity = 2
+calc_start = 28
+calc_end =  32
 job_type = 'opt' #either sp or opt
 calc_dir = '/home/aljama/CHA-Pd+1/calculations/'
-create_input_dir = '/home/aljama/CHA-Pd+1/create_input'
+create_input_dir = '//home/aljama/CHA-Pd+1/create_input'
 
-zeolite = 'CHA'
 exchange 	= 'omegab97x-d'
 cwd       = os.getcwd()
 struc_dir = cwd+'/../structures_saved'
@@ -49,7 +47,6 @@ def rem_section():
 	f.write('basis   \t'+basis+'\n')
 	f.write('AIMD_FIXED_ATOMS \t'+str(len(fixed_atoms))+'\n')
 	f.write(text_rm)
-	f.write('model_system_mult '+str(multiplicity)+'\n')
 	f.write('$end\n\n')
 
 def qm_atoms_section(qm_atoms):
@@ -83,7 +80,7 @@ def opt_section(fixed_atoms):
 
 def molecules_section():
 	'writes details of the #molecule section'
-	f.write('$molecule\n0  '+str(multiplicity)+'\n')
+	f.write('$molecule\n0  1\n')
 	g = open('tmp', 'r')
 	f.write(g.read())
 	os.system('rm tmp')
@@ -104,16 +101,16 @@ def qm_fixed_regions(traj, data, struc_dir):
 'run calculations'
 
 for calc in calculations:
-	
-	print(calc)
-
-	if os.path.exists(calc_dir+'/'+calc+'-'+details) is not True:
-		os.system('mkdir '+calc_dir+'/'+calc+'-'+details)
-	os.chdir(calc_dir+'/'+calc+'-'+details)
-
+	try:
+		os.chdir(calc_dir)
+	except:
+		os.system('mkdir '+calc_dir)
+		os.chdir(calc_dir)
+	if os.path.exists(calc+'-'+details) is not True:
+		os.system('mkdir '+calc+'-'+details)
+	os.chdir(calc+'-'+details)
 	with open("dir_data.json", "w") as write_file:
 		json.dump(data[calc+'.traj'], write_file, indent=4)
-
 	if basis == 'def2-sv(p)':
 		os.system('cp '+struc_dir+'/'+calc+'.traj input.traj')
 		atoms = io.read('input.traj')
@@ -121,15 +118,9 @@ for calc in calculations:
 		atoms.write('input.xyz')
 	elif basis == 'def2-tzvpd':
 		os.system('cp '+calc_dir+'/'+calc+'-opt-omegab97x-d-def2-svp/full-atoms.xyz input.xyz')
-
-	try:
-		os.system('cp '+create_input_dir+'/'+zeolite+'-NL.json .')
-	except:
-		print('original structure of zeolite-NL.json does not exist')
-
-	os.system('cp '+create_input_dir+'/connectivity_NL.py .')
+	os.system('cp '+cwd+'/../general/connectivity.py .')
 	fixed_atoms, qm_atoms = qm_fixed_regions(calc, data, struc_dir)
-	os.system('python connectivity_NL.py input.xyz '+str(qm_atoms)+' '+zeolite+' > tmp')
+	os.system('python connectivity.py input.xyz '+str(qm_atoms)+' > tmp')
 
 	'''writing opt.in'''
 	f = open('opt.in','w')

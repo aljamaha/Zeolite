@@ -1,0 +1,9 @@
+$comment
+   Atom   type   and   names
+   -1   Oxygen   in   SiO4
+   -2   Silicon   in   SiO4
+   -3   H for terminal in SiO4
+   -23  Si right out of T5 and has one connections to QM
+   -22  Si right out of T5 and has two connections to QM
+   -21  Si right out of T5 and has three connections to QM
+$end
