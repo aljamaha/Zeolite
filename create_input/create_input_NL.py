@@ -9,8 +9,8 @@ Running calculations on selected strucutres. Provide Inputs below
 '''
 
 'Inputs'
-calc_start = 64
-calc_end   = 96
+calc_start = 192
+calc_end   = 224
 multiplicity = 2
 job_type = 'opt' #either sp or opt
 calc_dir = '/home/aljama/CHA-Pd+1/calculations/'
@@ -84,10 +84,14 @@ def opt_section(fixed_atoms):
 def molecules_section():
 	'writes details of the #molecule section'
 	f.write('$molecule\n0  '+str(multiplicity)+'\n')
-	g = open('tmp', 'r')
-	f.write(g.read())
-	os.system('rm tmp')
-	f.write('$end')
+ 	if os.path.getsize(tmp) == 0:
+ 		print('Connectivity_NL results in an empty $mol section')
+ 		exit()
+ 	else:
+ 		g = open('tmp', 'r')
+ 		f.write(g.read())
+ 		os.system('rm tmp')
+ 		f.write('$end')
 
 def qm_fixed_regions(traj, data, struc_dir):
 	'qm region'

@@ -5,7 +5,7 @@ from ase import io
 
 '''
 Objective: convert an xyz coordinates to QM/MM molecule format
-Input format: python qm-mm-connectivity <xyz coordinates> <List of qm atoms> <Zeolite name (OPTIONAL)>
+Input format: python connectivity_NL.py <xyz input file> <List of qm atoms> <Zeolite name (OPTIONAL)>
 Output: $molecule section in QM/MM calculations
 '''
 
@@ -20,9 +20,9 @@ except:
 	exit()
 
 try:
-	atoms = io.read(sys.argv[1][0:-4]+'.traj')
+	atoms = io.read(sys.argv[1])
 except:
-	print('input traj file not available')
+	#print('input traj file not available')
 	exit()
 
 try:
@@ -31,10 +31,8 @@ try:
 		data = json.load(read_file)
 	n_atoms = len(data)
 	input_Zeolite = True
-	#qm_atoms = qm[0:-1]
 except:
 	input_Zeolite = False
-	#qm_atoms = qm
 
 def clean_qm_atoms(qm_atoms):
 	'converts list of qm_atoms to a str easily used later on'
