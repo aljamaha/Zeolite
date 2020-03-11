@@ -114,7 +114,7 @@ if os.path.isfile(data_dir+"/data_output.json") == True:
 		data = json.load(read_file)		#output data
 else:
 	data = {}
-	with open(data_dir+"/data_ouptput.json", "w") as write_file:
+	with open(data_dir+"/data_output.json", "w") as write_file:
   		json.dump(data, write_file, indent=4)
 
 with open(data_dir+"/data.json", "r") as read_file:
