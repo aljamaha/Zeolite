@@ -4,10 +4,15 @@ from ase import io
 'Analyze the output of qmmm calculations and exports data to output_data.json'
 
 'Inputs'
-calc_dir = '/home/aljama/CHA-Pd/calculations/'	#directory where caluculatiosn are saved
-data_dir = '/home/aljama/CHA-Pd/data/'		#directory where data are saved
-scripts_dir = '/home/aljama/scripts/'		#directory where zeolites scripts are
+dir_name     = 'CHA-Pd'
+surroundings = False   #prints traj files of surroundings
+traj         = False   #prints traj files of qm region
+full	     = False   #prints traj files of full atoms
 
+'Directroies'
+calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
+data_dir    = '/home/aljama/'+dir_name+'/data/'		#directory where data are saved
+scripts_dir = '/home/aljama/scripts/'		#directory where zeolites scripts are
 cwd = os.getcwd()
 
 def folders_list(wd):
@@ -172,19 +177,23 @@ for folder in folders:
 				H_qm = H_qm_region(n_O, n_Si, n_Al)  #H added to qm region to justify MM region
 				n_qm = len(data_original[ref]['qm_region']) + H_qm #total atoms in qm region
 				n_qm = str(n_qm)
-				os.system('python convert-qchem-output-to-ase.py '+n_qm)
+				if traj == True:
+					os.system('python convert-qchem-output-to-ase.py '+n_qm)
 
-			#if os.path.isfile('traj-full-atoms/2.xyz') == False:
 			'print full traj of all atoms if they do not exist'
-			os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
+			if full == True:
+				os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
 			
 			'print traj files of surroundings'
-			os.system('python '+scripts_dir+'qchem-to-ase-surroundings.py')
+			if surroundings == True:
+				os.system('python '+scripts_dir+'qchem-to-ase-surroundings.py')
 
+
+print('Incomplete calculations')
 
 for item in data:
 	if data[item]['status'] == 'incomplete':
-		print(item, data[item])
+		print(item)
 
 'saving output data'
 with open(data_dir+"/data_output.json", "w") as write_file:
