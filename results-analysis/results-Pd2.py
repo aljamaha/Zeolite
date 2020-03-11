@@ -9,11 +9,10 @@ Results Analysis
 
 'Inputs'
 sorted_plot = True		#if True, bar plots of energies is sorted from lowest to highest
-#ring_color  = False		#if True, bar plots with ring type
-data_dir    = '/home/aljama/CHA-Pd/data/'			#dir where json data are saved
-calc_dir    = '/home/aljama/CHA-Pd/calculations/'		#dir where calculations are done
-results_dir = '/home/aljama/CHA-Pd/results-analysis/' 	#dir where results are to be saved
-H_data      = '/home/aljama/CHA/data/'	#dir where data for H adsorptions sites are saved
+data_dir    = '/home/aljama/CHA-full-MR-Pd/data/'			#dir where json data are saved
+calc_dir    = '/home/aljama/CHA-full-MR-Pd/calculations/'		#dir where calculations are done
+results_dir = '/home/aljama/CHA-full-MR-Pd/results-analysis/' 	#dir where results are to be saved
+H_data      = '/home/aljama/CHA-full-MR/data/'	#dir where data for H adsorptions sites are saved
 ring_data   = '/home/aljama/CHA/data/' 	#dir with information on ring types, etc.
 
 'Load data from json files'
@@ -238,14 +237,17 @@ except:
 
 'manual deletions of repeated refernces'
 print('Warning! Manual deletion of some references!')
-del references['6.traj'] 	#repeated 4 MR
-del references['5.traj']	#repeated as 3
-del references['11.traj']	#repeated as 17 (stackd 6 MR)
-del references['8.traj']	#repeated as 7
-del references['9.traj']	#repeated as 7
-del references['10.traj']	#repeated as 7
-del references['23.traj']	#repeated as 25
-del references['26.traj']	#repeated as 25
+#del references['6.traj'] 	#repeated 4 MR
+#del references['5.traj']	#repeated as 3
+#del references['11.traj']	#repeated as 17 (stackd 6 MR)
+#del references['8.traj']	#repeated as 7
+#del references['9.traj']	#repeated as 7
+#del references['10.traj']	#repeated as 7
+#del references['23.traj']	#repeated as 25
+#del references['26.traj']	#repeated as 25
+del references['2.traj']
+
+print('references: ', references)
 
 for ref in references:
 	'loop over each reference'
@@ -276,6 +278,7 @@ for ref in references:
 				zeolite_H = min_H(ref_H)
 				E_qmmm = data_output[data_output_entry]['energy']
 				E_rxn = rxn_energy(E_qmmm, zeolite_H)
+				print(item, E_rxn)
 				if first_item == True:
 					E_ref = E_rxn
 				E.append(E_rxn - E_ref)
@@ -327,9 +330,9 @@ if sorted_plot == True:
 		#print(x_min[index], E_min[index])
 		plt.bar(x_pts[index], new_E[index],color=new_C[index], align='center', alpha=1)
 		if new_x[index]>45:
-			plt.text(x_pts[index]-0.25,0.5,'NNNN', rotation = 90)
+			plt.text(x_pts[index]-0.25,2.7,'NNNN', rotation = 90)
 		else:
-			plt.text(x_pts[index]-0.25,0.5,'NNN', rotation = 90)
+			plt.text(x_pts[index]-0.25,2.7,'NNN', rotation = 90)
 	plt.xticks(x_pts, new_x, rotation = 90)
 	plt.ylabel('Energy (eV)')
 	plt.show()
