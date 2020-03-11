@@ -1,4 +1,4 @@
-#!/home/mgcf/software-ws/anaconda/anaconda3/envs/molmod/bin/python
+#!/Users/hassanaljama/opt/anaconda3/bin/python
 
 import os
 from ase import io
@@ -7,29 +7,41 @@ import json
 '''
 Running calculations on selected strucutres. Provide Inputs below
 '''
-
 'Inputs'
-calc_start = 28
-calc_end =  32
-job_type = 'opt' #either sp or opt
-calc_dir = '/home/aljama/CHA-Pd+1/calculations/'
-create_input_dir = '//home/aljama/CHA-Pd+1/create_input'
+calc         = [7,9,11]		#if continous list, input first and last. Otherwise, input individual entries
+multiplicity = 2		#multiplicity of the structure
+job_type     = 'opt' 		#either sp or opt
+dir_name     = 'CHA-full-MR'	#name of the parent dir
+zeolite      = 'CHA'		#zeolite name
 
-exchange 	= 'omegab97x-d'
-cwd       = os.getcwd()
-struc_dir = cwd+'/../structures_saved'
-data_dir = cwd+'/../data'
-scripts_dir = '/home/aljama/scripts/' 	#this is where qm-initial structure script is 
+'Inputs (rarely need a change)'
+cwd              = os.getcwd()
+exchange         = 'omegab97x-d'
+struc_dir        = cwd+'/../structures_saved'
+data_dir         = cwd+'/../data'
+scripts_dir      = '/home/aljama/scripts/' 	#this is where qm-initial structure script is
+calc_dir         = '/home/aljama/'+dir_name+'/calculations/'
+create_input_dir = '/home/aljama/'+dir_name+'/create_input'
 
-'General Inputs (do not change)'
+'basis set depending on job_type'
 if job_type == 'sp':
 	basis    	= 'def2-tzvpd' 	#basis set [def2-sv(p) or def2-tzvpd]
 elif job_type == 'opt':
 	basis    	= 'def2-sv(p)' 	#basis set [def2-sv(p) or def2-tzvpd]
 details  = job_type+'-'+exchange+'-'+basis.replace('(','').replace(')','') #naming dir (uniqueness)
+
+'Calculations list'
 calculations = []
-for j in range(calc_start,calc_end):
-	calculations.append(str(j))
+if len(calc) == 2:
+	'continous list from start to end'
+	for j in range(calc[0],calc[1]):
+		calculations.append(str(j))
+else:
+	'individual list'
+	for j in calc:
+		calculations.append(str(j))
+
+'Load data'
 with open(data_dir+"/data.json", "r") as read_file:
     data = json.load(read_file)
 
@@ -47,6 +59,7 @@ def rem_section():
 	f.write('basis   \t'+basis+'\n')
 	f.write('AIMD_FIXED_ATOMS \t'+str(len(fixed_atoms))+'\n')
 	f.write(text_rm)
+	f.write('model_system_mult '+str(multiplicity)+'\n')
 	f.write('$end\n\n')
 
 def qm_atoms_section(qm_atoms):
@@ -80,11 +93,15 @@ def opt_section(fixed_atoms):
 
 def molecules_section():
 	'writes details of the #molecule section'
-	f.write('$molecule\n0  1\n')
-	g = open('tmp', 'r')
-	f.write(g.read())
-	os.system('rm tmp')
-	f.write('$end')
+	f.write('$molecule\n0  '+str(multiplicity)+'\n')
+	if os.path.getsize('tmp') == 0:
+		print('Connectivity_NL results in an empty $mol section')
+		exit()
+	else:
+		g = open('tmp', 'r')
+		f.write(g.read())
+		os.system('rm tmp')
+		f.write('$end')
 
 def qm_fixed_regions(traj, data, struc_dir):
 	'qm region'
@@ -98,44 +115,62 @@ def qm_fixed_regions(traj, data, struc_dir):
 			fixed_atoms.append(str(index))
 	return fixed_atoms, qm_atoms
 
-'run calculations'
+'Create dir for desired calculations'
 
 for calc in calculations:
-	try:
-		os.chdir(calc_dir)
-	except:
-		os.system('mkdir '+calc_dir)
-		os.chdir(calc_dir)
-	if os.path.exists(calc+'-'+details) is not True:
-		os.system('mkdir '+calc+'-'+details)
-	os.chdir(calc+'-'+details)
-	with open("dir_data.json", "w") as write_file:
-		json.dump(data[calc+'.traj'], write_file, indent=4)
-	if basis == 'def2-sv(p)':
-		os.system('cp '+struc_dir+'/'+calc+'.traj input.traj')
-		atoms = io.read('input.traj')
-		n_atoms = len(atoms)
-		atoms.write('input.xyz')
-	elif basis == 'def2-tzvpd':
-		os.system('cp '+calc_dir+'/'+calc+'-opt-omegab97x-d-def2-svp/full-atoms.xyz input.xyz')
-	os.system('cp '+cwd+'/../general/connectivity.py .')
-	fixed_atoms, qm_atoms = qm_fixed_regions(calc, data, struc_dir)
-	os.system('python connectivity.py input.xyz '+str(qm_atoms)+' > tmp')
+	
+	print(calc)
+	status = ''
 
-	'''writing opt.in'''
-	f = open('opt.in','w')
-	rem_section()
-	qm_atoms_section(qm_atoms)
-	comments_section()
-	ff_parameters()
-	opt_section(fixed_atoms)
-	molecules_section()
-	f.close()
+	if job_type == 'sp':
+		'check opt calc is done before generating sp folders'
+		try:
+			data_output[calc+'-opt-omegab97x-d-def2-svp']['energy'] - 0
+		except:
+			print(calc, 'opt calculation is incomplete')
+			status = 'incomplete'
+		
+	if status == '':
+		'avoid generating input for sp calculations where opt is incomplete'	
+		if os.path.exists(calc_dir+'/'+calc+'-'+details) is not True:
+			os.system('mkdir '+calc_dir+'/'+calc+'-'+details)
+		os.chdir(calc_dir+'/'+calc+'-'+details)
 
-	'print initial qm structure'
-	os.system('cp '+scripts_dir+'/qm_structure.py .')
-	os.system('python qm_structure.py')	
+		with open("dir_data.json", "w") as write_file:
+			json.dump(data[calc+'.traj'], write_file, indent=4)
 
-	'print structure of surrounding atoms'	
-	os.system('cp '+scripts_dir+'/surroundings_structure.py .')
-	os.system('python surroundings_structure.py')	
+		if basis == 'def2-sv(p)':
+			os.system('cp '+struc_dir+'/'+calc+'.traj input.traj')
+			atoms = io.read('input.traj')
+			n_atoms = len(atoms)
+			atoms.write('input.xyz')
+		elif basis == 'def2-tzvpd':
+			os.system('cp '+calc_dir+'/'+calc+'-opt-omegab97x-d-def2-svp/full-atoms.xyz input.xyz')
+
+		try:
+			os.system('cp '+data_dir+'/'+zeolite+'-NL.json .')
+		except:
+			print('original structure of zeolite-NL.json does not exist')
+			exit()
+
+		os.system('cp '+create_input_dir+'/connectivity_NL.py .')
+		fixed_atoms, qm_atoms = qm_fixed_regions(calc, data, struc_dir)
+		os.system('python connectivity_NL.py input.xyz '+str(qm_atoms)+' '+zeolite+' > tmp')
+
+		'''writing opt.in'''
+		f = open('opt.in','w')
+		rem_section()
+		qm_atoms_section(qm_atoms)
+		comments_section()
+		ff_parameters()
+		opt_section(fixed_atoms)
+		molecules_section()
+		f.close()
+
+		'print initial qm structure'
+		os.system('cp '+scripts_dir+'/qm_structure.py .')
+		os.system('python qm_structure.py')	
+
+		'print structure of surrounding atoms'	
+		os.system('cp '+scripts_dir+'/surroundings_structure.py .')
+		os.system('python surroundings_structure.py')	
