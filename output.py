@@ -188,9 +188,10 @@ for folder in folders:
 			if surroundings == True:
 				os.system('python '+scripts_dir+'qchem-to-ase-surroundings.py')
 
+			'adding information from original calculation'
+			data[folder]['original_info'] = data_original[ref]
 
-print('Incomplete calculations')
-
+print('Incomplete calculations:')
 for item in data:
 	if data[item]['status'] == 'incomplete':
 		print(item)
