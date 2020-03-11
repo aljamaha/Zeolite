@@ -133,7 +133,6 @@ for structure in structures_so_far:
 #for item in data:
 #	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
-		
 '''save data'''
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
