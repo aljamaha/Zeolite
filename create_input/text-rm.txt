@@ -1,6 +1,6 @@
 geom_opt_coords 0                 
 max_scf_cycles  500         
-geom_opt_max_cycles   	500         
+geom_opt_max_cycles   	200         
 ecp	def2-ecp
 scf_algorithm 	diis_gdm
 QM_MM_INTERFACE Zeolite         
