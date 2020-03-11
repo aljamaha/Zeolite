@@ -139,12 +139,13 @@ for entry in minimum:
 		E.append(E_rxn - E_ref)
 		E_label.append(minimum[entry])
 		ref_label[minimum[entry]] = entry
-plt.show()
+plt.clf()	#clear plot
+
 new_x, new_E, x_pts = sort(E_label, E)
 for index, item in enumerate(new_E):
 	plt.bar(x_pts[index], new_E[index],color='b', align='center', alpha=1)
-	plt.xticks(x_pts, new_x, rotation = 90)
-	plt.ylabel('Energy (eV)')
 	if plt_ref_label == True:
-		plt.text(x_pts[index], min(new_E), ref_label[new_x[index]], rotation = 90, fontsize=12)
+		plt.text(x_pts[index], min(new_E), ref_label[new_x[index]], rotation = 90, fontsize=12)	
+plt.xticks(x_pts, new_x, rotation = 90)
+plt.ylabel('Energy (eV)')
 plt.show()
