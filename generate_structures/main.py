@@ -78,11 +78,15 @@ if H_Z == True:
 
 '''Pd+2'''
 if Pd2 == True:
-	index, data = Pd2(data, calculations, struc_dir, index, total_original_atoms, N_list, H_atoms)
+	index, data = Pd2(data, calculations, struc_dir, index, total_original_atoms, N_list, H_atoms)	
+	for item in data:
+		data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 '''Pd+1'''
 if Pd1 == True:
 	index, data = Pd1(data, struc_dir, N_list, H_atoms, index ,  total_original_atoms )
+	for item in data:
+		data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 '''NH3'''
 if NH3 == True:
@@ -116,9 +120,9 @@ for structure in structures_so_far:
 			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')
 	'''
 
-'''identify qm region [repeated here because H in previous regions is needed for NO ads site'''
-for item in data:
-	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+#'''identify qm region [repeated here because H in previous regions is needed for NO ads site'''
+#for item in data:
+#	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 		
 '''save data'''
