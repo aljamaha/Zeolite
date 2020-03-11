@@ -7,6 +7,7 @@ from molmod import *
 from functions import *
 from qm_region import qm_region
 from adsorbate import *
+from check_duplicates import *
 
 '''
 Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate adsorption site
@@ -21,9 +22,10 @@ Pd2	= False #generates sturcture of zeolites with Pd+2 (if True)
 NH3	= False #genertes structures of zeolites with NH3 (if True)
 Al	= 0	#index of Si atom to be replaced by an Al atom			
 H_atoms = 192	#number of H atoms in original structure to account for terminal O
-calculations    = '/home/aljama/CHA-full-MR/calculations/' #folder containing calculations
+dir_name= 'Zeolite'
 
 'Inputs (dont change)'
+calculations    = '/home/aljama/'+dir_name+'/calculations/' #folder containing calculations
 cwd  	= os.getcwd()
 if os.path.exists(cwd+'/../structures_saved') == False:
 	os.system('mkdir '+cwd+'/../structures_saved')
@@ -66,6 +68,13 @@ for item in neighbors['Si']['NNN']:
 	zeolite_copy = deepcopy(zeolite)
 	zeolite_copy[item].symbol = 'Al'
 	index, data = print_structure(zeolite_copy, index, 'NNN', str(index+1)+'.traj',struc_dir, data, H_atoms)
+
+for item in data:
+	'identify qm atoms'
+	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+
+'''Detecting duplicate structures'''
+data = remove_duplicates(data, struc_dir)
 
 '''Writing structures of H-zeolites'''
 if H_Z == True:
