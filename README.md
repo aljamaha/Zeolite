@@ -10,7 +10,7 @@ In Progress ..
 ## Step 1: generate_structures: 
 
 ### objective: 
-Generate unique zeolite structures (1 or 2 Al atoms substituting Si, and adsorption sites for H/metal)
+Generate unique zeolite structures (1 or 2 Al atoms substituting Si, and compensating cations/protons)
 ### syntax:
 `python main.py`
 - functions.py [common useful functions]
