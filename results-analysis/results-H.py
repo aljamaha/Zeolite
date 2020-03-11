@@ -9,12 +9,12 @@ add a description here
 '''
 
 'Inputs'
-plotting    	    = False		#if True, plot results for each reference structure
+plotting    	    = True		#if True, plot results for each reference structure
 sorted_plot	    = True		#if True, bar plots of energies is sorted from lowest to highest
 plotting_overall    = False		#if True, make an overall plot of all results
-data_dir    = '/home/aljama/CHA/data/'			#dir where json data are saved
-calc_dir    = '/home/aljama/CHA/calculations/'		#dir where calculations are done
-results_dir = '/home/aljama/CHA/results-analysis/' 	#dire where results are to be saved
+data_dir    = '/home/aljama/CHA-full-MR/data/'			#dir where json data are saved
+calc_dir    = '/home/aljama/CHA-full-MR/calculations/'		#dir where calculations are done
+results_dir = '/home/aljama/CHA-full-MR/results-analysis/' 	#dire where results are to be saved
 
 'Load data from json files'
 with open(data_dir+"data_output.json", "r") as read_file:
