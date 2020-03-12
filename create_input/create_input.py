@@ -8,7 +8,7 @@ import json
 Running calculations on selected strucutres. Provide Inputs below
 '''
 'Inputs'
-calc         = [1,2,3,4]		#if continous list, input first and last. Otherwise, input individual entries
+calc         = [1,2,3]		#if continous list, input first and last. Otherwise, input individual entries
 multiplicity = 2		#multiplicity of the structure
 job_type     = 'opt' 		#either sp or opt
 dir_name     = 'Zeolite'	#name of the parent dir
@@ -199,14 +199,17 @@ for calc in calculations:
 		molecules_section()
 		f.close()
 
-		'print initial qm structure'
-		os.system('cp '+scripts_dir+'/qm_structure.py .')
-		os.system('python qm_structure.py')	
-
 		'print structure of surrounding atoms'	
 		os.system('cp '+scripts_dir+'/surroundings_structure.py .')
 		os.system('python surroundings_structure.py')	
 
+		with open("dir_data.json", "w") as write_file:
+			json.dump(data[calc+'.traj'], write_file, indent=4)
+
+		'print initial qm structure'
+		os.system('cp '+scripts_dir+'/qm_structure.py .')
+
+		os.system('python qm_structure.py')	
 		'add to dir_data number of QMMM atoms'	
 		n_Al,n_Si, n_O = Al_Si_atoms()
 		if n_Al == 1:
@@ -214,6 +217,8 @@ for calc in calculations:
 		elif n_Al == 2:
 			H_qm = H_qm_region(n_O, n_Si, n_Al)  #H added to qm region to justify MM region
 		data[calc+'.traj']['QMMM length'] = len(data[calc+'.traj']['qm_region']) + H_qm #total atoms in qm region
+
 		with open("dir_data.json", "w") as write_file:
 			json.dump(data[calc+'.traj'], write_file, indent=4)
+
 
