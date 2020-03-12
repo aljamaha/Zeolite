@@ -312,6 +312,31 @@ def update_missing_MR(Al_index, N_list, data, traj, Al2, n_MR_max):
 
 	return data
 				
+def Si_cutoff(Al_indicies, data, traj, atoms, cutoff):
+	'''
+	identifies Si atoms within a cutoff from each Al	
+	Inputs:
+		Al_indicies - indexes of Al atoms
+		data	    - global json data list
+		traj	    - name of traj file
+		atoms	    - ase atoms object
+		cutoff	    - cutoff beyond which atoms are not included
+	Output:
+		Updated data[traj][qm_region] with O-atoms <cutoff distance from Al atoms now included
+	'''
+
+	print('='*10, '\n', traj)
+	for Al in Al_indicies:
+		for atom in atoms:
+			if atom.symbol == 'O':
+				d = atoms.get_distance(Al,atom.index)
+				if d < cutoff:
+					if atom.index not in data[traj]['qm_region']:	
+						print(atom.index)
+						data[traj]['qm_region'].append(atom.index)
+
+	return data
+
 def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 	'''
 	Objective:
@@ -354,6 +379,17 @@ def qm_region(data, traj, struc_dir,  N_list, total_original_atoms):
 	'identify remaining atoms in the 6/8 MR'
 	if len(Al_atoms) == 2:
 		update_missing_MR(Al_atoms[0], N_list, data, traj, Al_atoms[1], n_MR_max = 8)
+
+	'atoms < cutoff to be included'
+	data = Si_cutoff(Al_atoms, data, traj, atoms, cutoff=5)
+
+	'identify Si atoms connected to O atoms in qm region (only ones not accounted for yet)'
+	for atom in atoms:
+		if atom.symbol == 'O' and atom.index in data[traj]['qm_region']:
+			for n_O in N_list[atom.index]:
+				if n_O not in data[traj]['qm_region']:
+					data[traj]['qm_region'].append(n_O)
+		
 
 	'identify O atoms connected to Si in the qm region (only ones not accounted for yet)'
 	for item in N_list:
