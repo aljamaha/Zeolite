@@ -16,7 +16,7 @@ Includes options for H adsorption, Pd+1, NH3, and Pd+2
 
 'Inputs'
 zeolite = io.read('../original_structures/CHA-T696.xyz')	#Zeolite structure
-Pd1 	= True  #generate structures of Pd+1 (if True)
+Pd1 	= False  #generate structures of Pd+1 (if True)
 H_Z	= False	#generate structures of zeolites with H (if True)
 Pd2	= False #generates sturcture of zeolites with Pd+2 (if True)
 NH3	= False #genertes structures of zeolites with NH3 (if True)
@@ -87,13 +87,13 @@ if H_Z == True:
 
 '''Pd+2'''
 if Pd2 == True:
-	index, data = Pd2(data, calculations, struc_dir, index, total_original_atoms, N_list, H_atoms)	
+	index, data = Pd_two(data, calculations, struc_dir, index, total_original_atoms, N_list, H_atoms)	
 	for item in data:
 		data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 '''Pd+1'''
 if Pd1 == True:
-	index, data = Pd1(data, struc_dir, N_list, H_atoms, index ,  total_original_atoms )
+	index, data = Pd_one(data, struc_dir, N_list, H_atoms, index ,  total_original_atoms )
 	for item in data:
 		data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
@@ -128,10 +128,6 @@ for structure in structures_so_far:
 			zeolite_copy = add_NH3(atoms, H_pos[2])
 			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')
 	'''
-
-#'''identify qm region [repeated here because H in previous regions is needed for NO ads site'''
-#for item in data:
-#	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 '''save data'''
 with open(data_dir+"/data.json", "w") as write_file:
