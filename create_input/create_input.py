@@ -8,10 +8,10 @@ import json
 Running calculations on selected strucutres. Provide Inputs below
 '''
 'Inputs'
-calc         = [7,9,11]		#if continous list, input first and last. Otherwise, input individual entries
+calc         = [1,2,3,4]		#if continous list, input first and last. Otherwise, input individual entries
 multiplicity = 2		#multiplicity of the structure
 job_type     = 'opt' 		#either sp or opt
-dir_name     = 'CHA-full-MR'	#name of the parent dir
+dir_name     = 'Zeolite'	#name of the parent dir
 zeolite      = 'CHA'		#zeolite name
 
 'Inputs (rarely need a change)'
@@ -147,6 +147,8 @@ def H_qm_region(n_O, n_Si, n_Al):
 	return tot_Si_bonds_with_H_needed
 
 'Create dir for desired calculations'
+if os.path.exists(calc_dir) is not True:
+	os.system('mkdir '+calc_dir)
 
 for calc in calculations:
 	
