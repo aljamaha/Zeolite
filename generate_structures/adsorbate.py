@@ -104,7 +104,7 @@ def Pd_H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atom
 
 	return index, data
 
-def Pd2(data, calculations, struc_dir, index, total_original_atoms, N_list, H_atoms):
+def Pd_two(data, calculations, struc_dir, index, total_original_atoms, N_list, H_atoms):
 	'''
 	Generates Strcutreus for Pd+2 for Al-Al pair
 	Inputs:
@@ -214,7 +214,7 @@ def add_H(zeolite, O1, H_num, O2=0):
 		zeolite_copy.append(Atom('H',(zeolite[O2].position[0],zeolite[O2].position[1],zeolite[O2].position[2]+1)))
 	return zeolite_copy
 
-def Pd1(data, struc_dir, N_list, H_atoms, index , total_original_atoms ):
+def Pd_one(data, struc_dir, N_list, H_atoms, index , total_original_atoms ):
 	structures_so_far = list(data)
 	for structure in structures_so_far:
 		if data[structure]['oxidation'] == -1:	
