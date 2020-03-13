@@ -23,6 +23,7 @@ NH3	= False #genertes structures of zeolites with NH3 (if True)
 Al	= 0	#index of Si atom to be replaced by an Al atom			
 H_atoms = 192	#number of H atoms in original structure to account for terminal O
 dir_name= 'Zeolite'
+cutoff  = 5 	#adds O atoms < cutoff distance to qm region
 
 'Inputs (dont change)'
 calculations    = '/home/aljama/'+dir_name+'/calculations/' #folder containing calculations
@@ -71,10 +72,14 @@ for item in neighbors['Si']['NNN']:
 
 for item in data:
 	'identify qm atoms'
-	data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+	data = qm_region(data, item, struc_dir, N_list, total_original_atoms,cutoff,turn_cutoff='off')
 
 '''Detecting duplicate structures'''
 data = remove_duplicates(data, struc_dir)
+
+for item in data:
+	'identify qm atoms'
+	data = qm_region(data, item, struc_dir, N_list, total_original_atoms,cutoff,turn_cutoff='on')
 
 '''Writing structures of H-zeolites'''
 if H_Z == True:
