@@ -8,7 +8,8 @@ import json
 Running calculations on selected strucutres. Provide Inputs below
 '''
 'Inputs'
-calc         = [1,2,3]		#if continous list, input first and last. Otherwise, input individual entries
+#calc         = [1,2,3,4,7,11,12,14,16,17,20,21,22,25]		#if continous list, input first and last. Otherwise, input individual entries
+calc         = [4,7,11]		#if continous list, input first and last. Otherwise, input individual entries
 multiplicity = 2		#multiplicity of the structure
 job_type     = 'opt' 		#either sp or opt
 dir_name     = 'Zeolite'	#name of the parent dir
@@ -164,11 +165,11 @@ for calc in calculations:
 			status = 'incomplete'
 		
 	if status == '':
+
 		'avoid generating input for sp calculations where opt is incomplete'	
 		if os.path.exists(calc_dir+'/'+calc+'-'+details) is not True:
 			os.system('mkdir '+calc_dir+'/'+calc+'-'+details)
 		os.chdir(calc_dir+'/'+calc+'-'+details)
-
 
 
 		if basis == 'def2-sv(p)':
@@ -199,10 +200,6 @@ for calc in calculations:
 		molecules_section()
 		f.close()
 
-		'print structure of surrounding atoms'	
-		os.system('cp '+scripts_dir+'/surroundings_structure.py .')
-		os.system('python surroundings_structure.py')	
-
 		with open("dir_data.json", "w") as write_file:
 			json.dump(data[calc+'.traj'], write_file, indent=4)
 
@@ -221,4 +218,6 @@ for calc in calculations:
 		with open("dir_data.json", "w") as write_file:
 			json.dump(data[calc+'.traj'], write_file, indent=4)
 
-
+		'print structure of surrounding atoms'	
+		os.system('cp '+scripts_dir+'/surroundings_structure.py .')
+		os.system('python surroundings_structure.py')	
