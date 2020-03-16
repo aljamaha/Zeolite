@@ -8,8 +8,7 @@ import json
 Running calculations on selected strucutres. Provide Inputs below
 '''
 'Inputs'
-#calc         = [1,2,3,4,7,11,12,14,16,17,20,21,22,25]		#if continous list, input first and last. Otherwise, input individual entries
-calc         = [4,7,11]		#if continous list, input first and last. Otherwise, input individual entries
+calc         = [1,2]	#if continous list, input first and last. Otherwise, input individual entries
 multiplicity = 2		#multiplicity of the structure
 job_type     = 'opt' 		#either sp or opt
 dir_name     = 'Zeolite'	#name of the parent dir
@@ -167,9 +166,9 @@ for calc in calculations:
 	if status == '':
 
 		'avoid generating input for sp calculations where opt is incomplete'	
-		if os.path.exists(calc_dir+'/'+calc+'-'+details) is not True:
-			os.system('mkdir '+calc_dir+'/'+calc+'-'+details)
-		os.chdir(calc_dir+'/'+calc+'-'+details)
+		if os.path.exists(calc_dir+'/'+calc+'-'+details+'-ref-'+data[calc+'.traj']['reference']) is not True:
+			os.system('mkdir '+calc_dir+'/'+calc+'-'+details+'-ref-'+data[calc+'.traj']['reference'])
+		os.chdir(calc_dir+'/'+calc+'-'+details+'-ref-'+data[calc+'.traj']['reference'])
 
 
 		if basis == 'def2-sv(p)':
