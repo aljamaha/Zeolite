@@ -9,13 +9,13 @@ Creates a zeolite cluster. the final structure requires using Iqmol to add missi
 '''
 
 'Inputs:'
-zeolite_xyz = 'original.xyz'	#name of original zeolite unit cell
+zeolite_xyz = '../original_structures/BEA.cif'	#name of original zeolite unit cell
 x,y,z	    = 3,3,3		#copy unit cell into 3 copies in x,y,z directions
 center	    = [1,1,1]		#center the cluster in this box
-Trim	    = False		#further trimming of the unit cell
-trim_x	    = [0.5,2.5]		#only if Trim = True
-trim_y	    = [0.5,2.5]		#only if Trim = True
-trim_z	    = [0.5,2.5]		#only if Trim = True
+Trim	    = True		#further trimming of the unit cell
+trim_x	    = [0.2,2.8]		#only if Trim = True
+trim_y	    = [0.2,2.8]		#only if Trim = True
+trim_z	    = [0.2,2.8]		#only if Trim = True
 
 'import original trajectory file'
 original_atoms  = io.read(zeolite_xyz)
@@ -83,29 +83,28 @@ for i in range(0,x):
 				atoms = copy_atoms(original_atoms, i,ii,iii)
 atoms.write('new.xyz')
 
-
 'Further trimming of the cluster'
 to_be_deleted = []
 if Trim == True:
+	#cell =  np.array(atoms.cell)
 	x = [cell[0][0]*trim_x[0], cell[0][0]*trim_x[1]]
 	y = [cell[1][1]*trim_y[0], cell[1][1]*trim_y[1]]
 	z = [cell[2][2]*trim_z[0], cell[2][2]*trim_z[1]]
-
 	for atom in atoms:
-		'z-axis'
-		if atom.position[2] < trim_z[0]:
+		if atom.position[2] < z[0]:
+			'z-axis'
 			to_be_deleted.append(atom.index)
-		elif atom.position[2] > trim_z[1]:
+		elif atom.position[2] > z[1]:
 			to_be_deleted.append(atom.index)
-		elif atom.position[0] < trim_x[0]:
+		elif atom.position[0] < x[0]:
 			'x-axis'	
 			to_be_deleted.append(atom.index)
-		elif atom.position[0] > trim_x[1]:
+		elif atom.position[0] > x[1]:
 			to_be_deleted.append(atom.index)
-		elif atom.position[1] < trim_y[0]:
+		elif atom.position[1] < y[0]:
 			'y-axis'	
 			to_be_deleted.append(atom.index)
-		elif atom.position[1] > trim_y[1]:
+		elif atom.position[1] > y[1]:
 			to_be_deleted.append(atom.index)
 	to_be_deleted.reverse()
 	for i in to_be_deleted:
@@ -131,9 +130,15 @@ for index in O:
 	del atoms[index]
 
 'unit cell box is shifted to the center'
-#atoms.cell[0][0] = cell[0][0] * (1+center[0])
-#atoms.cell[1][1] = cell[1][1] * (1+center[1])
-#atoms.cell[2][2] = cell[2][2] * (1+center[2])
-#atoms.center(about=(center[0],center[1],center[2]))
+def translate(atoms):
+	'moves the center of the unit cell'
+	cell = atoms.get_cell()
+	shift = np.zeros((3,1))
+	shift = [atoms.get_cell()[0][0], atoms.get_cell()[1][1], atoms.get_cell()[2][2]]
+	for i in atoms:
+		i.position = i.position - shift
+	return atoms
+atoms = translate(atoms)
 
+print(atoms.get_cell())
 atoms.write('missing_H.xyz')
