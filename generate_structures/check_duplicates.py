@@ -3,6 +3,7 @@ from functions import Al_Al_distance
 from ase import io
 import numpy as np
 from copy import deepcopy
+from superimpose_structures import *
 
 def check(item_data, candidate_data, entry, length=False):
 	'''
@@ -59,19 +60,29 @@ def remove_duplicates(data, struc_dir):
 	Inputs:
 		data dictionary containing information about all structures
 	Output:
+		data dictionary with duplicates removed
 	'''
 	duplicates, group = {}, 0
 	duplicates['group1'] = {}
+	skip		  = [] 		#avoid those items in second loop (because they have already been checked)
 
 	for item in data:
+		print(item)
 		'aggregate duplicates in the same group under duplicates dictionary'
+		skip.append(item)	
 		for candidate in data:
-			if item != candidate:
-				if check(data[item], data[candidate], 'Al') == 'pass':
-					if check(data[item], data[candidate], 'N') == 'pass':
-						if check(data[item], data[candidate], 'qm_region', length=True) == 'pass':
-							if compare_Al_distance(item, candidate, struc_dir)[0] == 'pass':
-								duplicates, group =  group_check(duplicates, item, candidate, group)
+			if candidate not in skip:
+				'no need to go over it again (inefficient second loop)'
+				if item != candidate:
+					if check(data[item], data[candidate], 'Al') == 'pass':
+						if check(data[item], data[candidate], 'N') == 'pass':
+							if check(data[item], data[candidate], 'qm_region', length=True) == 'pass':
+								if check(data[item], data[candidate], 'Al-Al MR') == 'pass':
+									if compare_Al_distance(item, candidate, struc_dir)[0] == 'pass':
+										if check(data[item], data[candidate], 'Al MR') == 'pass':
+											print(item, candidate, 'now checking for superimpose!')
+											if superimpose_structures(item, candidate, struc_dir, data) == True:
+												duplicates, group =  group_check(duplicates, item, candidate, group)
 
 	for j in data:
 		'for those who do not have duplicates, make them in the same group'
@@ -89,7 +100,6 @@ def remove_duplicates(data, struc_dir):
 	non_duplicates = []
 	for item in duplicates:
 		non_duplicates.append(duplicates[item][0])
-
 	
 	'deleting detected duplicate'
 	data_copy = deepcopy(data)
