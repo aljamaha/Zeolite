@@ -2,6 +2,7 @@ import json, os
 import matplotlib.pyplot as plt
 from ase import atoms, io
 from copy import deepcopy
+import numpy as np
 
 '''
 Results Analysis (energy and O-O distances)
@@ -10,11 +11,16 @@ add a description here
 
 'Inputs'
 plotting    	    = True		#if True, plot results for each reference structure
-sorted_plot	    = True		#if True, bar plots of energies is sorted from lowest to highest
-plotting_overall    = False		#if True, make an overall plot of all results
+plot_individual	    = True		#show individual plots for each reference (as a function of O-O distance)
+sorted_plot	    = False		#if True, bar plots of energies is sorted from lowest to highest
+not_sorted	    = False		#make a plot of all data aggregated (O-distance vs. Energy)
+plotting_overall    = True		#if True, make an overall plot of all results
+label_pts	    = False		#add labels to pts in scatter plt
+Al_shading	    = True		#add vertical line referring to Al-Al distance
 data_dir    = '/home/aljama/CHA-full-MR/data/'			#dir where json data are saved
 calc_dir    = '/home/aljama/CHA-full-MR/calculations/'		#dir where calculations are done
 results_dir = '/home/aljama/CHA-full-MR/results-analysis/' 	#dire where results are to be saved
+#colors      = ['g','b','r','k','y','c','m']
 
 'Load data from json files'
 with open(data_dir+"data_output.json", "r") as read_file:
@@ -108,7 +114,7 @@ def sort(x_pos, E):
 	'''
 	E_data, new_label, new_E, x_pts = {},[],[],[]
 	E_copy = deepcopy(E)
-
+	'''
 	for index, item in enumerate(E_copy):
 		'define a dict with entries being structure name'
 		E_data[x_pos[index]] = E_copy[index]
@@ -118,6 +124,17 @@ def sort(x_pos, E):
 		x = list(E_data.values()).index(E_item) 
 		new_label.append(x_pos[x])		#name of the label of each structure
 		new_E.append(E_item)			#sorted energies
+	'''
+
+	for index, item in enumerate(E_copy):
+		'define a dict with entries being structure name'
+		E_data[x_pos[index]] = E_copy[index]
+	E_copy.sort() #sort energies from lowest to highest
+	for index, E_item in enumerate(E_copy):
+		x_pts.append(index)			#x-axis points in the plot
+		x = list(E_data.values()).index(E_item) 
+		new_label.append(x_pos[x])		#name of the label of each structure
+		new_E.append(E_item - min(E_copy))			#sorted energies
 		
 	return new_label, new_E, x_pts
 
@@ -236,27 +253,33 @@ for ref in references:
 			plt.ylabel('Energy (eV)')
 			plt.show()
 
-		else:
+		elif not_sorted == True:
 			'bar plot (not sorted)'
 			plt.bar(x_pos, E, align='center', alpha=1)
 			plt.xticks(x_pos, x_pos)
 			plt.ylabel('Energy (eV)')
 			plt.show()
-	
-		plt.plot(O_d, E, 'o', markersize=6)
-		plt.xlabel('O-O Distance (A)', fontsize = 10)
-		plt.ylabel('Energy (eV)', fontsize = 10)
-		for i, lab in enumerate(label):
-			plt.text(O_d[i], E[i], lab)
-		plt.show()
+		if plotting_overall == True:
+			try:
+				tmp, tmp_ind = np.min(E), E.index(min(E))
+				plt.plot(O_d[tmp_ind], tmp - np.min(E) , 'sk', markersize=10)
+				plt.plot(O_d, E - np.min(E), 'o', markersize=6,label=ref[0:-5])
+				plt.xlabel('O-O Distance (A)', fontsize = 14)
+				plt.ylabel('Energy (eV)', fontsize = 14)
+				plt.tick_params(labelsize=14)
+				if Al_shading == True:
+					plt.plot([Al_distance,Al_distance],[-2,2],'r--')
+					plt.plot([Al_distance-0.8,Al_distance-0.8],[-2,2],'k--')
+					plt.plot([Al_distance+0.8,Al_distance+0.8],[-2,2],'k--')
+				if label_pts == True:
+					for i, lab in enumerate(label):
+						plt.text(O_d[i], E[i], lab)
+				if plot_individual == True:
+					plt.show()
+			except:
+				pass
 
 if plotting_overall == True:
-	plt.plot(O_d_all, E_all, 'o', markersize=6)
-	plt.xlabel('O-O Distance (A)', fontsize = 10)
-	plt.ylabel('Energy (eV)', fontsize = 10)
-	plt.xlim([4,12])
+	plt.legend()
+	plt.xlim([1,10])
 	plt.show()
-
-'save data with Al-Al distance'
-with open(data_dir+"data_output.json", "w") as write_file:
-    json.dump(data_output, write_file, indent=4)
