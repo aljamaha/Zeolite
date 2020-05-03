@@ -47,7 +47,7 @@ def count_elements(atoms):
 		structure_data[item] = list(atoms.symbols).count(item)
 	return structure_data
 
-def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms,reference_H=[], adsorbate='', metal=''):
+def print_structure(atoms, Al, index, N, reference, struc_dir, data, H_atoms,reference_H=[], adsorbate='', metal=''):
 	'''
 	Inputs:
 		atoms: ase atoms object
@@ -65,24 +65,26 @@ def print_structure(atoms, index, N, reference, struc_dir, data, H_atoms,referen
 	'''
 
 	index += 1
-	os.chdir(struc_dir), atoms.write(str(index)+'.traj')
-	data[str(index)+'.traj'] = count_elements(atoms)
-	data[str(index)+'.traj']['N'] = N
-	data[str(index)+'.traj']['reference'] = reference
+	name = str(index)+'.traj'
+	os.chdir(struc_dir), atoms.write(name)
+	data[name] = count_elements(atoms)
+	data[name]['N'] = N
+	data[name]['reference'] = reference
 	if adsorbate != '':
-		data[str(index)+'.traj']['adsorbate'] = adsorbate
-	if 'H' not in list(data[str(index)+'.traj']):
-		data[str(index)+'.traj']['H'] = 0
-	if 'Pd' in data[str(index)+'.traj']:
-		data[str(index)+'.traj']['oxidation'] = 0
+		data[name]['adsorbate'] = adsorbate
+	if 'H' not in list(data[name]):
+		data[name]['H'] = 0
+	if 'Pd' in data[name]:
+		data[name]['oxidation'] = 0
 	elif adsorbate != '':
-		data[str(index)+'.traj']['oxidation'] = 0
-		data[str(index)+'.traj']['reference_H'] = reference_H
+		data[name]['oxidation'] = 0
+		data[name]['reference_H'] = reference_H
 	else:	
-		data[str(index)+'.traj']['oxidation'] = int(data[str(index)+'.traj']['Al'])*3 - H_atoms + (int(data[str(index)+'.traj']['H']) - H_atoms) + int(data[str(index)+'.traj']['Si'])*4 - int(data[str(index)+'.traj']['O'])*2 
-	data[str(index)+'.traj']['total_atoms'] = len(atoms)
+		data[name]['oxidation'] = int(data[name]['Al'])*3 - H_atoms + (int(data[name]['H']) - H_atoms) + int(data[name]['Si'])*4 - int(data[name]['O'])*2 
+	data[name]['total_atoms'] = len(atoms)
 	if metal != '':
-		data[str(index)+'.traj']['metal'] = metal
+		data[name]['metal'] = metal
+	data[name]['T-site'] = Al
 		
 
 	return index, data
@@ -132,7 +134,7 @@ def identify_repeat_structures(index):
 	'''
 	output = []
 	for i in range(1, index):
-		print(i)
+		#print(i)
 		for j in range(1, index):
 				#if i != j:
 				atoms1 = io.read(str(i)+'.traj')
@@ -157,7 +159,7 @@ def Al_Al_distance(atoms):
 	else:
 		distance = 0
 
-	return distance
+	return round(distance,3)
 
 def identify_N(N_list_Al, N_list, neighbors, Al):
 	'''
@@ -315,4 +317,73 @@ def CHA_ads(xyz):
 		pore_min = pore2
 
 	return pore1, pore2, pore_min
+				
+def O_cutoff(Al_indicies, data, traj, atoms, cutoff):
+	'''
+	identifies O atoms within a cutoff from each Al	
+	Inputs:
+		Al_indicies - indexes of Al atoms
+		data	    - global json data list
+		traj	    - name of traj file
+		atoms	    - ase atoms object
+		cutoff	    - cutoff beyond which atoms are not included
+	Output:
+		Updated data[traj][qm_region] with O-atoms <cutoff distance from Al atoms now included
+	'''
+	for Al in Al_indicies:
+		for atom in atoms:
+			if atom.symbol == 'O':
+				d = atoms.get_distance(Al,atom.index)
+				if d < cutoff:
+					if atom.index not in data[traj]['qm_region']:	
+						#print(atom.index)
+						data[traj]['qm_region'].append(atom.index)
+	return data
 
+def Al_Al_N(struc_dir, data, N_list):
+	'''
+	find Al-Al pairs that are neighbors and deletes them
+	Inputs:
+		item - structure traj name
+		data - global json data file
+	Output: return json data with deleted entries of Al-Al pairs
+	'''
+
+	copy_data = deepcopy(data)	#so I could iterate over it, and t
+
+	for item in copy_data:
+		tmp = False
+		if data[item]['Al'] == 2:
+			atoms = io.read(struc_dir+'/'+item)
+			for atom in atoms:
+				if atom.symbol == 'Al':
+					Al_index = atom.index
+					break
+			n_Al = individual_NL(Al_index, N_list)
+			for index in n_Al['Si']['N']:
+				if atoms[index].symbol == 'Al':
+					tmp = True
+		if tmp == True:
+			del data[item]
+
+	return data
+	
+def unit_cell_limit(data, struc_dir, n_atoms_original):
+	'''
+	limits substituted Al to be only in the same unit cell
+	Inputs:
+		data - json data files
+		struc_dir - dir where structures are saved
+		n_atoms_original - number of atoms in the original unit cell
+	'''
+	copy_data = deepcopy(data)
+	for item in copy_data:
+		atoms = io.read(struc_dir+'/'+item)
+		for atom in atoms:
+			if atom.symbol == 'Al' and atom.index > n_atoms_original:
+				try:
+					del data[item]
+					print(item, 'not in same unit cell', atom.index)
+				except:
+					print('could not be deleted')
+	return data

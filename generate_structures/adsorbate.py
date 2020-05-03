@@ -129,7 +129,7 @@ def Pd_two(data, calculations, struc_dir, index, total_original_atoms, N_list, H
 				atoms = io.read(calculations+'/'+structure[0:-5]+'-opt-omegab97x-d-def2-svp/full-atoms.xyz')
 			except:
 				atoms    = io.read(struc_dir+'/'+structure)
-				print('optimized structure for {} is not found'.format(structure))
+				#print('optimized structure for {} is not found'.format(structure))
 
 			atoms_qm = data[structure]['qm_region']	
 
@@ -148,13 +148,13 @@ def Pd_two(data, calculations, struc_dir, index, total_original_atoms, N_list, H
 				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, metal = 'Pd')
 
 	'identify qm region' 
-	for item in data:
-		print('='*5,'\n', item)
-		#data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+	#for item in data:
+	#	#print('='*5,'\n', item)
+	#	#data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
 
 	return index, data
 
-def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms):
+def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms, Al):
 	'''
 	write structures of H-zeolites
 	Inputs:
@@ -165,17 +165,17 @@ def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms):
 		index       : index of previous structure
 	'''
 	for item in zeolite_bare:
-		atoms = io.read(struc_dir+'/'+data[item]['reference'])
+		atoms = io.read(struc_dir+'/'+str(data[item]['reference']))
 		if data[item]['Al'] == 1:
 			for O in neighbors['O']['N']:
 				zeolite_copy = add_H(atoms, O, 1)
-				index, data = print_structure(zeolite_copy, index, 'N', item,struc_dir, data, H_atoms)
+				index, data = print_structure(zeolite_copy, Al, index, 'N', item,struc_dir, data, H_atoms)
 		else:
 			O_index = O_neighbor_indicies(atoms, N_list)
 			for i in O_index[0]:
 				for j in O_index[1]:
 					zeolite_copy = add_H(atoms, i, 2, j)
-					index, data = print_structure(zeolite_copy, index, data[item]['N'], item,struc_dir, data, H_atoms)
+					index, data = print_structure(zeolite_copy, Al, index, data[item]['N'], item,struc_dir, data, H_atoms)
 
 	return index, data
 
@@ -259,3 +259,34 @@ def Pd_one(data, struc_dir, N_list, H_atoms, index , total_original_atoms ):
 		
 	return index, data
 
+
+def NH3_old():
+	'''
+	'the original NH3 function in main script'
+	structures_so_far = list(data)
+
+	for structure in structures_so_far:
+
+	if data[structure]['oxidation'] == 0:
+
+		H_num = []	 #number of H atoms
+
+		try:
+			atoms = io.read(calculations+'/'+structure[0:-5]+'-opt-omegab97x-d-def2-svp/full-atoms.xyz')
+		except:
+			atoms    = io.read(struc_dir+'/'+structure)
+			print('optimized structure for {} is not found'.format(structure))
+
+		atoms_qm = data[structure]['qm_region']
+
+		for atom_num in atoms_qm:
+			if atoms[atom_num].symbol == 'H':
+				H_num.append(atom_num)
+
+		for H_atom in H_num:
+			'prints two structures based on nearest pore in each (8 MR and 6 MR)'
+			xyz_H        = atoms[H_atom].position
+			H_pos        = CHA_ads(xyz_H)
+			zeolite_copy = add_NH3(atoms, H_pos[2])
+			index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure, adsorbate='NH3')
+	'''
