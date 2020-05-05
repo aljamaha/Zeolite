@@ -154,19 +154,23 @@ def Pd_two(data, calculations, struc_dir, index, total_original_atoms, N_list, H
 
 	return index, data
 
-def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms, Al):
+def H_zeolite(zeolite_bare, struc_dir, data, index, N_list, H_atoms):
 	'''
 	write structures of H-zeolites
 	Inputs:
 		zeolite_bare: list of zeolites without H or M
 		struc_dir   : directory of structures
 		data	    : dictionary of the data
-		neighbors   : dictionary of the neighboring Si/Al
 		index       : index of previous structure
 	'''
 	for item in zeolite_bare:
 		atoms = io.read(struc_dir+'/'+str(data[item]['reference']))
 		if data[item]['Al'] == 1:
+			for atom in atoms:
+				if atom.symbol == 'Al':
+					Al = atom.index
+					break
+			neighbors   = individual_NL(Al, N_list)
 			for O in neighbors['O']['N']:
 				zeolite_copy = add_H(atoms, O, 1)
 				index, data = print_structure(zeolite_copy, Al, index, 'N', item,struc_dir, data, H_atoms)
@@ -175,7 +179,7 @@ def H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms, 
 			for i in O_index[0]:
 				for j in O_index[1]:
 					zeolite_copy = add_H(atoms, i, 2, j)
-					index, data = print_structure(zeolite_copy, Al, index, data[item]['N'], item,struc_dir, data, H_atoms)
+					index, data = print_structure(zeolite_copy, '', index, data[item]['N'], item,struc_dir, data, H_atoms)
 
 	return index, data
 
