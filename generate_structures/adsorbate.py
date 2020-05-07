@@ -81,6 +81,59 @@ def add_Pd1(Al_index, N_list, atoms):
 
 	return copies
 
+
+def Pd2_candidate_positions(Al1, Al2, N_list, atoms):
+	'''
+	TBA (all must change)
+	Adds Pd+1 between O1 and O2 at a 1.5d distance (where d is distance between Al and the midpoint of O1, O2)
+	Inputs:
+		Al_index - index of Al atom
+		atoms	 - ase atoms object
+		N_list   - global neighbor list of all atoms
+	Outputs:
+		4 copies of Structure of zeolite with Pd+1 at different positions
+		
+	'''
+	O_N,O_d,Pd_pos = {},{},[]
+	O_N[Al1] = individual_NL(Al1, N_list)['O']['N'] #O atoms neighboring Al
+	O_N[Al2] = individual_NL(Al2, N_list)['O']['N'] #O atoms neighboring Al
+	copies = []
+
+	'Distances from O_N[0]'
+	for al in O_N:
+		for O in O_N[al]:
+			O_d[al] = {}
+			O_d[al][O] = atoms.get_distance(O,O_N[al][0])
+
+	'Atom furthest away from O_N[0]'
+	for al in O_N:
+		far_atom , d = '', 0
+		for O in O_d[al]:
+			if O_d[al][O] > d:
+				far_atom = O
+				d = O_d[al][O]
+
+	for al in O_N:
+		for O in O_N[al]:
+			if O != O_N[al][0] and O != far_atom:
+				'Add Pd+1 between O_N[0] and the two Os next to it'
+				Pd_pos = position_Pd1(al, atoms, O_N[al][0], O)
+				#copy_atoms = deepcopy(atoms)
+				#copy_atoms.append(Atom('Pd', Pd_pos))
+				#copies.append(copy_atoms)
+
+				'Add Pd+1 between far_atom and the two atoms (not O_N[0])'
+				Pd_pos = position_Pd1(al, atoms, far_atom, O)	
+				#copy_atoms = deepcopy(atoms)
+				#copy_atoms.append(Atom('Pd', Pd_pos))
+				#copies.append(copy_atoms)
+	
+
+	return XXXX
+
+
+
+
 def Pd_H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms):
 	'''
 	write structures of Pd-H-zeolites where 2 Al atoms are present
@@ -228,7 +281,7 @@ def Pd_one(data, struc_dir, N_list, H_atoms, index , total_original_atoms ):
 					break
 			zeolite_copies = add_Pd1(Al_index, N_list, atoms)
 			for zeolite_copy in zeolite_copies:
-				index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
+				index, data  = print_structure(zeolite_copy, '', index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
 				
 		elif  data[structure]['oxidation'] == -2:
 			'add Pd+1 and H'
@@ -251,7 +304,7 @@ def Pd_one(data, struc_dir, N_list, H_atoms, index , total_original_atoms ):
 						zeolite_copies = add_Pd1(Al_index[0], N_list, zeolite_copy)
 
 					for zeolite_copy in zeolite_copies:
-						index, data  = print_structure(zeolite_copy, index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
+						index, data  = print_structure(zeolite_copy, '', index, data[structure]['N'], data[structure]['reference'] , struc_dir, data, H_atoms, reference_H = structure)
 
 	'identify qm region [repeated here because H in previous regions is needed for NO ads site'
 	#for item in data:
