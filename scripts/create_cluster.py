@@ -13,9 +13,9 @@ zeolite_xyz = '../original_structures/BEA.cif'	#name of original zeolite unit ce
 x,y,z	    = 3,3,3		#copy unit cell into 3 copies in x,y,z directions
 center	    = [1,1,1]		#center the cluster in this box
 Trim	    = True		#further trimming of the unit cell
-trim_x	    = [0.2,2.8]		#only if Trim = True
-trim_y	    = [0.2,2.8]		#only if Trim = True
-trim_z	    = [0.2,2.8]		#only if Trim = True
+trim_x	    = [0,3]		#only if Trim = True
+trim_y	    = [0,3]		#only if Trim = True
+trim_z	    = [0.55,2.35]		#only if Trim = True
 
 'import original trajectory file'
 original_atoms  = io.read(zeolite_xyz)
