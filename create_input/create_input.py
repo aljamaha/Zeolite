@@ -8,11 +8,11 @@ import json
 Running calculations on selected strucutres. Provide Inputs below
 '''
 'Inputs'
-calc         = [510,2000]	#if continous list, input first and last. Otherwise, input individual entries
-multiplicity = 1	#multiplicity of the structure
-job_type     = 'opt' 	#either sp or opt
-dir_name     = 'BEA'	#name of the parent dir
-zeolite      = 'BEA'	#zeolite name
+calc         = [9,10]		#if continous list, input first and last. Otherwise, input individual entries
+multiplicity = 1		#multiplicity of the structure
+job_type     = 'opt' 		#either sp or opt
+dir_name     = 'BEA/original'	#name of the parent dir
+zeolite      = 'BEA'		#zeolite name
 
 'Inputs (rarely need a change)'
 cwd              = os.getcwd()

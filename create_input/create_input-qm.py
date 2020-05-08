@@ -9,10 +9,10 @@ create input files with only qm region (to compare nuclear repulsion energies)
 '''
 
 'Inputs'
-calc         = [1,2000]	#if continous list, input first and last. Otherwise, input individual entries
+calc         = [1,278]	#if continous list, input first and last. Otherwise, input individual entries
 multiplicity = 1	#multiplicity of the structure
 job_type     = 'opt' 	#either sp or opt
-dir_name     = 'BEA/BEA-full-Si'	#name of the parent dir
+dir_name     = 'BEA/original'	#name of the parent dir
 zeolite      = 'BEA'	#zeolite name
 
 'Inputs (rarely need a change)'
