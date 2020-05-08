@@ -15,7 +15,7 @@ def shift(atoms, Al_position):
 		i.position = i.position - Al_position
 	return atoms
 
-def compare_distance(atoms1, atoms2, cutoff=0.01):
+def compare_distance(atoms1, atoms2, cutoff=0.05):
 	'''
 	checks if two structures are identical by comparing distances of each atom
 	Inputs:
@@ -39,12 +39,13 @@ def compare_distance(atoms1, atoms2, cutoff=0.01):
 			break
 	return tmp
 
-def rotate(atoms, Al_pos):
+#def rotate_atoms(atoms, Al2, candidate):
+def rotate_atoms(a, candidate):
 	'''
 	Generates different rotations of the structure
 	Inputs:
 		atoms     - ase atoms object
-		Al_pos    - pos of Al atom where the cell should be shifted
+		Al_pos    - index of Al atom where the cell should be shifted
 	Output:
 		rotations - a list of atoms objected rotated around Al_index
 	'''
@@ -53,11 +54,12 @@ def rotate(atoms, Al_pos):
 	for x in angle:
 		for y in angle:
 			for z in angle:
+				atoms = deepcopy(a)
 				atoms.rotate(x,'x')
-				atoms.rotate(y,'y' )
+				atoms.rotate(y,'y')
 				atoms.rotate(z,'z')
-				atoms = shift(atoms, Al_pos)
 				rotations.append(atoms)
+				#atoms.write('/home/aljama/BEA/T9/generate_structures/traj/'+candidate+'-'+str(x)+'-'+str(y)+'-'+str(z)+'.traj')
 
 	return rotations
 
@@ -86,32 +88,6 @@ def superimpose_structures(item, candidate, struc_dir, data):
 		atoms2.append(full_atoms2[qm])
 	del atoms2[0]
 
-	os.chdir('/home/aljama/BEA/H/generate_structures/')
-	atoms1.write(item+'.traj')
-	atoms2.write(candidate+'.traj')
-	exit()
-
-	'''
-	atoms1      = io.read(struc_dir+'/'+item)
-	atoms1_copy = deepcopy(atoms1)
-	atoms1_qm    = deepcopy(data[item]['qm_region'])
-	atoms1_qm.sort(reverse = True) 
-	print(atoms1_copy)
-	for atom in atoms1_copy:
-		if atom.index not in atoms1_qm:
-			del atoms1[atom.index]
-
-
-	'atoms2 qm region'
-	atoms2      = io.read(struc_dir+'/'+candidate)	
-	atoms2_copy = deepcopy(atoms2)
-	atoms2_qm    = deepcopy(data[candidate]['qm_region'])
-	atoms2_qm.sort(reverse = True) 
-	for atom in atoms2_copy:
-		if atom.index not in atoms2_qm:
-			del atoms2[atom.index]
-	'''
-
 	output      = False 		#assume two structures do not match
 	atoms1_Al, atoms2_Al = [],[] 	#index of Al atoms in the two structures
 
@@ -125,20 +101,37 @@ def superimpose_structures(item, candidate, struc_dir, data):
 
 	for Al1 in atoms1_Al:
 
-		Al1_xyz = atoms1[Al1].position
+		Al1_xyz = deepcopy(atoms1[Al1].position)
 		a1 = deepcopy(atoms1)
 		a1 = shift(a1, Al1_xyz)
+		#a1.write('/home/aljama/BEA/T9/generate_structures/traj/'+item)
 
+		a2 = deepcopy(atoms2)
+		rotations = deepcopy(rotate_atoms(a2, candidate))
+		k = 0
+		for rot in rotations:
+
+			rot_copy = deepcopy(rot)
+			for Al2 in atoms2_Al:
+				rot_copy = shift(rot_copy, deepcopy(rot_copy[Al2].position))
+				if candidate == '135.traj' and item == '2.traj':
+					k+=1
+					#rot_copy.write('/home/aljama/BEA/T9/generate_structures/traj/'+candidate+'-'+str(k)+'.traj')
+
+				if compare_distance(a1, rot_copy) == True:
+					print('overlap two strucutres!', candidate, item)
+					output = True
+					return output
+	'''
 		for Al2 in atoms2_Al:
 
-			Al2_xyz = atoms2[Al2].position
 			a2 = deepcopy(atoms2)
-			a2 = shift(a2, Al2_xyz)
-			rotations = deepcopy(rotate(a2, Al2_xyz))
+			rotations = deepcopy(rotate_atoms(a2, Al2, candidate))
 
-			for ind, rot in enumerate(rotations):
+			for rot in rotations:
 				if compare_distance(a1, rot) == True:
 					print('overlap two strucutres!', candidate, item)
 					output = True
 					return output
+	'''
 	return output

@@ -41,7 +41,7 @@ def group_check(duplicates, item, candidate, group):
 
 	return duplicates, group
 
-def compare_Al_distance(item, candidate, struc_dir, cutoff=0.7):	
+def compare_Al_distance(item, candidate, struc_dir, cutoff=0.9):	
 	
 	tmp = 'fail'
 	item_atoms      = io.read(struc_dir+'/'+item)
@@ -80,7 +80,7 @@ def remove_duplicates(data, struc_dir):
 								if check(data[item], data[candidate], 'Al-Al MR') == 'pass':
 									if compare_Al_distance(item, candidate, struc_dir)[0] == 'pass':
 										if check(data[item], data[candidate], 'Al MR') == 'pass':
-											print(item, candidate, 'now checking for superimpose!')
+											print('passsed previous tests, waiting for superimpose', candidate, item)
 											if superimpose_structures(item, candidate, struc_dir, data) == True:
 												duplicates, group =  group_check(duplicates, item, candidate, group)
 
