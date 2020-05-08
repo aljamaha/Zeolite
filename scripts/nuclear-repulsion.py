@@ -5,10 +5,11 @@ from copy import deepcopy
 
 'Inputs'
 cutoff   = 0.01		#cutoff for comparing NRE 
-calc_dir = '/home/aljama/BEA/BEA-qm-repulsion/calculations/'
-print_traj = True
+calc_dir = '/home/aljama/BEA/original/calculations/'
+print_traj = False
 
 'General Inputs'
+os.chdir(calc_dir)
 cwd = os.getcwd()
 os.chdir(calc_dir)
 os.system("ls > tmp")
@@ -58,6 +59,18 @@ for item in data:
 					duplicate[group] = [item,item2]
 
 del duplicate[0]
+
+'Find single items that do not have duplicates'
+for item in data:
+	tmp = False
+	for g in duplicate:
+		if item in duplicate[g]:
+			tmp = True
+			break
+	if tmp == False:
+		group+=1
+		duplicate[group] = [item]
+		
 os.chdir(cwd)
 
 'Print Results'
