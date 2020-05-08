@@ -387,3 +387,4 @@ def unit_cell_limit(data, struc_dir, n_atoms_original):
 				except:
 					print('could not be deleted')
 	return data
+
