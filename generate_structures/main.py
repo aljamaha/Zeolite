@@ -15,17 +15,18 @@ Generates unique zeolite structure with 1 or 2 Al substituting Si and enumerate 
 Includes options for H adsorption, Pd+1, NH3, and Pd+2
 '''
 
+start = time.time()
 'Inputs'
-zeolite_original = io.read('../original_structures/T-918.xyz')	#Zeolite structure
+zeolite_original = io.read('../original_structures/T-810.xyz')	#Zeolite structure
 Pd1 	= False  #generate structures of Pd+1 (if True)
-H_Z	= False	#generate structures of zeolites with H (if True)
+H_Z	= True	#generate structures of zeolites with H (if True)
 Pd2	= False #generates sturcture of zeolites with Pd+2 (if True)
-T_atom	= [128,136,144,152,160,168,176,184,188]	#index of Si atom to be replaced by an Al atom	
-H_atoms = 342	#number of H atoms in original structure to account for terminal O
-dir_name= 'BEA/original'
+T_atom = [1119, 1124, 1129, 1134, 1139, 1144, 1149, 1155, 1158]
+H_atoms = 274	#number of H atoms in original structure to account for terminal O
+dir_name= 'BEA/H'
 cutoff  = 0	#adds O atoms < cutoff distance to qm region
 n_MR_max = 7	#maximum number of MR of interest
-n_atoms_original = 192	#number of atoms in a unit cell
+#n_atoms_original = 192	#number of atoms in a unit cell
 
 'Inputs (dont change)'
 calculations    = '/home/aljama/'+dir_name+'/calculations/' #folder containing calculations
@@ -93,7 +94,7 @@ for item in data:
 if H_Z == True:
 	print('creating H structures ...')
 	zeolite_bare = list(data.keys())	#list of zeolites with Al but no H
-	index, data  = H_zeolite(zeolite_bare, struc_dir, data, neighbors, index, N_list, H_atoms, Al)
+	index, data  = H_zeolite(zeolite_bare, struc_dir, data, index, N_list, H_atoms)
 
 	'''identify qm region [repeated here because H in previous regions is needed for NO ads site''' 
 	for item in data:

@@ -78,11 +78,11 @@ def remove_duplicates(data, struc_dir):
 						if check(data[item], data[candidate], 'N') == 'pass':
 							if check(data[item], data[candidate], 'qm_region', length=True) == 'pass':
 								if check(data[item], data[candidate], 'Al-Al MR') == 'pass':
-									if compare_Al_distance(item, candidate, struc_dir)[0] == 'pass':
-										if check(data[item], data[candidate], 'Al MR') == 'pass':
-											print('passsed previous tests, waiting for superimpose', candidate, item)
-											if superimpose_structures(item, candidate, struc_dir, data) == True:
-												duplicates, group =  group_check(duplicates, item, candidate, group)
+									#if compare_Al_distance(item, candidate, struc_dir)[0] == 'pass':
+									if check(data[item], data[candidate], 'Al MR') == 'pass':
+											#print('passsed previous tests, waiting for superimpose', candidate, item)
+											#if superimpose_structures(item, candidate, struc_dir, data) == True:
+											duplicates, group =  group_check(duplicates, item, candidate, group)
 
 	for j in data:
 		'for those who do not have duplicates, make them in the same group'
