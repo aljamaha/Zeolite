@@ -224,9 +224,9 @@ def update_missing_MR(Al1, N_list, data, traj, n_MR_max, Al_atoms, Al2=''):
 	'single Al MR'
 	for al in Al_atoms:
 		if len(Al_atoms) == 1:
-			mr_single = [4,5]
+			mr_single = [4,5,6]
 		else:
-			mr_single = [4]
+			mr_single = [4,5]
 		
 		for mr in mr_single:
 			data = MR_single_Al(mr, al ,store[al] , data, traj, N_list, True)

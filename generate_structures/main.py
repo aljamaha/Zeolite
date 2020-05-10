@@ -18,25 +18,24 @@ Includes options for H adsorption, Pd+1, NH3, and Pd+2
 start = time.time()
 'Inputs'
 zeolite_original = io.read('../original_structures/T-810.xyz')	#Zeolite structure
-Pd1 	= False  #generate structures of Pd+1 (if True)
-H_Z	= True	#generate structures of zeolites with H (if True)
+Pd1 	= True  #generate structures of Pd+1 (if True)
+H_Z	= False	#generate structures of zeolites with H (if True)
 Pd2	= False #generates sturcture of zeolites with Pd+2 (if True)
 T_atom = [1119, 1124, 1129, 1134, 1139, 1144, 1149, 1155, 1158]
 H_atoms = 274	#number of H atoms in original structure to account for terminal O
-dir_name= 'BEA/H'
+dir_name= 'BEA/Pd1'
 cutoff  = 0	#adds O atoms < cutoff distance to qm region
 n_MR_max = 7	#maximum number of MR of interest
 #n_atoms_original = 192	#number of atoms in a unit cell
 
 'Inputs (dont change)'
 calculations    = '/home/aljama/'+dir_name+'/calculations/' #folder containing calculations
-cwd  	= os.getcwd()
-if os.path.exists(cwd+'/../structures_saved') == False:
-	os.system('mkdir '+cwd+'/../structures_saved')
-struc_dir = cwd+'/../structures_saved'	#dir to store structures
+if os.path.exists('/home/aljama/'+dir_name+'/structures_saved') == False:
+	os.system('mkdir /home/aljama/'+dir_name+'/structures_saved')
+struc_dir = '/home/aljama/'+dir_name+'/structures_saved'	#dir to store structures
 index 	= 0			#index of the structure
 data 	= {}			#store details of each structure
-data_dir        = cwd+'/../data'
+data_dir        = '/home/aljama/'+dir_name+'/data'
 total_original_atoms = len(zeolite_original) 	#number of total atoms in the zeolite structure
 
 for Al in T_atom:
@@ -112,7 +111,7 @@ if Pd1 == True:
 	print('creating Pd+1 structures ...')
 	index, data = Pd_one(data, struc_dir, N_list, H_atoms, index ,  total_original_atoms )
 	for item in data:
-		data = qm_region(data, item, struc_dir, N_list, total_original_atoms)
+		data = qm_region(data, item, struc_dir, N_list, total_original_atoms,  cutoff, n_MR_max, turn_cutoff='on')
 
 '''save data'''
 with open(data_dir+"/data.json", "w") as write_file:
