@@ -4,16 +4,16 @@ from ase import io
 'Analyze the output of qmmm calculations and exports data to output_data.json'
 
 'Inputs'
-dir_name     = 'CHA-Pd'
-surroundings = False   #prints traj files of surroundings
-traj         = False   #prints traj files of qm region
+dir_name     = 'BEA/Pd1'
+#surroundings = False   #prints traj files of surroundings
+traj         = True   #prints traj files of qm region
 full	     = False   #prints traj files of full atoms
 
 'Directroies'
 calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
 data_dir    = '/home/aljama/'+dir_name+'/data/'		#directory where data are saved
 scripts_dir = '/home/aljama/scripts/'		#directory where zeolites scripts are
-cwd = os.getcwd()
+#cwd = os.getcwd()
 
 def folders_list(wd):
 	'list of folders in a directory'
@@ -126,8 +126,8 @@ for folder in folders:
 	print('calculation: ', folder)
 	tmp_energy = '' #assign an empty initial value
 	
+	'check status of calculation and energy'
 	if folder in data:
-		'check status of calculation and energy'
 		if 'energy' in data[folder]:
 			tmp_energy = 'extracted'
 	else:
@@ -135,11 +135,6 @@ for folder in folders:
 		data[folder] = {}	#create new entry in dictionary
 
 	os.chdir(calc_dir+'/'+folder)
-
-	if os.path.isfile("qm-initial.traj") == False:
-		'print structure of initial qm region'
-		os.system('cp '+scripts_dir+'/qm_structure.py .')
-		os.system('python qm_structure.py')
 
 	for index, item  in enumerate(folder):
 		if item == '-':
@@ -149,12 +144,12 @@ for folder in folders:
 			break
 
 	'name of output file'
-	output_file = calc_status(os.getcwd())[1]
+	output_file = calc_status(calc_dir+'/'+folder)[1]
 
 	if tmp_energy != 'extracted':
 		'extract calculation detail/Energy'
 		data[folder]['calc']   = folder[index+1:] 
-		data[folder]['status'] = calc_status(os.getcwd())[0]
+		data[folder]['status'] = calc_status(calc_dir+'/'+folder)[0]
 		
 		if data[folder]['status'] == 'complete':
 			'extract energy if calculation is complete'
@@ -167,34 +162,34 @@ for folder in folders:
 				tmp_energy = 'extracted'
 
 	if tmp_energy == 'extracted':	
-			#if os.path.isfile('traj/2.xyz') == False:
 			'print qm traj files if they do not exist'
+			os.chdir(calc_dir+'/'+folder)
 			os.system('cp '+scripts_dir+'/convert-qchem-output-to-ase.py .')
-			n_Al,n_Si, n_O = Al_Si_atoms()	#number of Al/Si atoms in qm region
-			if n_Al == 1:
-				H_qm = 12 #H added to qm region to justify MM region
-			elif n_Al == 2:
+
+			if traj == True:
+				n_Al,n_Si, n_O = Al_Si_atoms()	#number of Al/Si atoms in qm region
 				H_qm = H_qm_region(n_O, n_Si, n_Al)  #H added to qm region to justify MM region
+				n_qm = data_original[ref]
 				n_qm = len(data_original[ref]['qm_region']) + H_qm #total atoms in qm region
 				n_qm = str(n_qm)
-				if traj == True:
-					os.system('python convert-qchem-output-to-ase.py '+n_qm)
+				os.system('python convert-qchem-output-to-ase.py '+n_qm)
 
 			'print full traj of all atoms if they do not exist'
 			if full == True:
 				os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
 			
-			'print traj files of surroundings'
-			if surroundings == True:
-				os.system('python '+scripts_dir+'qchem-to-ase-surroundings.py')
+			#'print traj files of surroundings'
+			#if surroundings == True:
+			#	os.system('python '+scripts_dir+'qchem-to-ase-surroundings.py')
 
 			'adding information from original calculation'
 			data[folder]['original_info'] = data_original[ref]
 
-print('Incomplete calculations:')
-for item in data:
-	if data[item]['status'] == 'incomplete':
-		print(item)
+
+#print('Incomplete calculations:')
+#for item in data:
+#	if data[item]['status'] == 'incomplete':
+#		print(item)
 
 'saving output data'
 with open(data_dir+"/data_output.json", "w") as write_file:
