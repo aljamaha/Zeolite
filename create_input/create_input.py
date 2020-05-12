@@ -8,14 +8,15 @@ import json
 Running calculations on selected strucutres. Provide Inputs below
 '''
 'Inputs'
-dir_name     = 'BEA/Pd1'	#name of the parent dir
-multiplicity = 2		#multiplicity of the structure
-exchange     = 'B97-D3'		#'omegab97x-d' or 'B97-D3'
-job_type     = 'opt' 		#either sp or opt
+dir_name     = 'BEA/H'	#name of the parent dir
+multiplicity = 1		#multiplicity of the structure
+exchange     = 'omegab97x-d'		#'omegab97x-d' or 'B97-D3'
+job_type     = 'sp' 		#either sp or opt
 zeolite      = 'BEA'		#zeolite name
 #calc         = [1798,1798+32]		#if continous list, input first and last. Otherwise, input individual entries
-calc	     = [506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 3302, 3303, 3304, 3305, 3306, 3307, 3308, 3309, 3310, 3311, 3312, 3313, 3314, 3315, 3316, 3317, 3318, 3319, 3320, 3321, 3322, 3323, 3324, 3325, 3326, 3327, 3328, 3329, 3330, 3331, 3332, 3333, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915, 4916, 4917, 4918, 4919, 4920, 4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4936, 4937]
-
+#calc	     = [506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 3302, 3303, 3304, 3305, 3306, 3307, 3308, 3309, 3310, 3311, 3312, 3313, 3314, 3315, 3316, 3317, 3318, 3319, 3320, 3321, 3322, 3323, 3324, 3325, 3326, 3327, 3328, 3329, 3330, 3331, 3332, 3333, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915, 4916, 4917, 4918, 4919, 4920, 4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4936, 4937]
+#calc = [394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 1798, 1799, 1800, 1801, 1802, 1803, 1804, 1805, 1806, 1807, 1808, 1809, 1810, 1811, 1812, 1813, 2602, 2603, 2604, 2605, 2606, 2607, 2608, 2609, 2610, 2611, 2612, 2613, 2614, 2615, 2616, 2617]
+calc = [278, 279, 280, 281, 746, 747, 748, 749, 1214, 1215, 1216, 1217, 1714, 1715, 1716, 1717, 2214, 2215, 2216, 2217, 2682, 2683, 2684, 2685, 3150, 3151, 3152, 3153, 3634, 3635, 3636, 3637, 4134, 4135, 4136, 4137]
 print('Directory name', dir_name)
 
 #cont_check = input('Press Enter to Continue ..')
@@ -48,11 +49,12 @@ else:
 'Load data'
 with open(data_dir+"/data.json", "r") as read_file:
     data = json.load(read_file)
+with open(data_dir+"/data_output.json", "r") as read_file:
+    data_output = json.load(read_file)
 
 def rem_section():
 	'writes details of rm section'
-	if job_type == 'opt':
-		g = open(create_input_dir+'/text-rm.txt','r')
+	g = open(create_input_dir+'/text-rm.txt','r')
 	text_rm = g.read()
 	g.close()
 	f.write('$rem   \n')
@@ -180,7 +182,7 @@ for calc in calculations:
 	if job_type == 'sp':
 		'check opt calc is done before generating sp folders'
 		try:
-			data_output[calc+'-opt-omegab97x-d-def2-svp']['energy'] - 0
+			data_output[calc+'-opt-'+exchange+'-def2-svp-ref-'+data[calc+'.traj']['reference']]['energy']
 		except:
 			print(calc, 'opt calculation is incomplete')
 			status = 'incomplete'
@@ -208,7 +210,7 @@ for calc in calculations:
 			clean_input('input.xyz')
 			
 		elif basis == 'def2-tzvpd':
-			os.system('cp '+calc_dir+'/'+calc+'-opt-omegab97x-d-def2-svp/full-atoms.xyz input.xyz')
+			os.system('cp '+calc_dir+'/'+calc+'-opt-'+exchange+'-def2-svp-ref-'+data[calc+'.traj']['reference']+'/full-atoms.xyz input.xyz')
 			clean_input('input.xyz')
 
 		try:
@@ -248,3 +250,6 @@ for calc in calculations:
 
 		with open("dir_data.json", "w") as write_file:
 			json.dump(data[calc+'.traj'], write_file, indent=4)
+
+
+	exit()
