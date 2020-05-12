@@ -8,20 +8,24 @@ import json
 Running calculations on selected strucutres. Provide Inputs below
 '''
 'Inputs'
-calc         = [9,10]		#if continous list, input first and last. Otherwise, input individual entries
-multiplicity = 1		#multiplicity of the structure
+dir_name     = 'BEA/Pd1'	#name of the parent dir
+multiplicity = 2		#multiplicity of the structure
+exchange     = 'B97-D3'		#'omegab97x-d' or 'B97-D3'
 job_type     = 'opt' 		#either sp or opt
-dir_name     = 'BEA/original'	#name of the parent dir
 zeolite      = 'BEA'		#zeolite name
+#calc         = [1798,1798+32]		#if continous list, input first and last. Otherwise, input individual entries
+calc	     = [506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 3302, 3303, 3304, 3305, 3306, 3307, 3308, 3309, 3310, 3311, 3312, 3313, 3314, 3315, 3316, 3317, 3318, 3319, 3320, 3321, 3322, 3323, 3324, 3325, 3326, 3327, 3328, 3329, 3330, 3331, 3332, 3333, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915, 4916, 4917, 4918, 4919, 4920, 4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4936, 4937]
+
+print('Directory name', dir_name)
+
+#cont_check = input('Press Enter to Continue ..')
 
 'Inputs (rarely need a change)'
-cwd              = os.getcwd()
-exchange         = 'omegab97x-d'
-struc_dir        = cwd+'/../structures_saved'
-data_dir         = cwd+'/../data'
+struc_dir        = '/home/aljama/'+dir_name+'/structures_saved'
+data_dir         = '/home/aljama/'+dir_name+'/data'
 scripts_dir      = '/home/aljama/scripts/' 	#this is where qm-initial structure script is
 calc_dir         = '/home/aljama/'+dir_name+'/calculations/'
-create_input_dir = '/home/aljama/'+dir_name+'/create_input/'
+create_input_dir = '/home/aljama/BEA/original/create_input/'
 
 'basis set depending on job_type'
 if job_type == 'sp':
@@ -165,6 +169,8 @@ def clean_input(input_file):
 'Create dir for desired calculations'
 if os.path.exists(calc_dir) is not True:
 	os.system('mkdir '+calc_dir)
+
+print('Calc dir', calc_dir)
 
 for calc in calculations:
 	
