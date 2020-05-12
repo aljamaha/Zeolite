@@ -13,6 +13,8 @@ multiplicity = 1		#multiplicity of the structure
 exchange     = 'omegab97x-d'		#'omegab97x-d' or 'B97-D3'
 job_type     = 'sp' 		#either sp or opt
 zeolite      = 'BEA'		#zeolite name
+THRESH	     = False
+THRESH_value = 13
 #calc         = [1798,1798+32]		#if continous list, input first and last. Otherwise, input individual entries
 #calc	     = [506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 3302, 3303, 3304, 3305, 3306, 3307, 3308, 3309, 3310, 3311, 3312, 3313, 3314, 3315, 3316, 3317, 3318, 3319, 3320, 3321, 3322, 3323, 3324, 3325, 3326, 3327, 3328, 3329, 3330, 3331, 3332, 3333, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915, 4916, 4917, 4918, 4919, 4920, 4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4936, 4937]
 #calc = [394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 1798, 1799, 1800, 1801, 1802, 1803, 1804, 1805, 1806, 1807, 1808, 1809, 1810, 1811, 1812, 1813, 2602, 2603, 2604, 2605, 2606, 2607, 2608, 2609, 2610, 2611, 2612, 2613, 2614, 2615, 2616, 2617]
@@ -64,6 +66,8 @@ def rem_section():
 	f.write('AIMD_FIXED_ATOMS \t'+str(len(fixed_atoms))+'\n')
 	f.write(text_rm)
 	f.write('model_system_mult '+str(multiplicity)+'\n')
+	if THRESH == True:
+		f.write('THRESH\t'+str(THRESH_value)+'\n')
 	f.write('$end\n\n')
 
 def qm_atoms_section(qm_atoms):
@@ -252,4 +256,3 @@ for calc in calculations:
 			json.dump(data[calc+'.traj'], write_file, indent=4)
 
 
-	exit()
