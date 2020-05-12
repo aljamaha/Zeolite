@@ -1,19 +1,18 @@
 import os, json, sys
 from ase import io
+from copy import deepcopy
 
 'Analyze the output of qmmm calculations and exports data to output_data.json'
 
 'Inputs'
 dir_name     = 'BEA/Pd1'
-#surroundings = False   #prints traj files of surroundings
-traj         = True   #prints traj files of qm region
+traj         = False   #prints traj files of qm region
 full	     = False   #prints traj files of full atoms
 
 'Directroies'
 calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
 data_dir    = '/home/aljama/'+dir_name+'/data/'		#directory where data are saved
 scripts_dir = '/home/aljama/scripts/'		#directory where zeolites scripts are
-#cwd = os.getcwd()
 
 def folders_list(wd):
 	'list of folders in a directory'
@@ -120,6 +119,13 @@ else:
 with open(data_dir+"/data.json", "r") as read_file:
 	data_original = json.load(read_file)	#original data details
 
+'delete items under calculations that are not opt/sp'
+folders_copy = deepcopy(folders)
+for folder in folders_copy:
+	if 'opt' not in folder :
+		if 'sp' not in folder:
+			folders.remove(folder)
+
 'data extraction'
 for folder in folders:
 
@@ -161,7 +167,7 @@ for folder in folders:
 			else:
 				tmp_energy = 'extracted'
 
-	if tmp_energy == 'extracted':	
+	if tmp_energy in ['extracted','']:	
 			'print qm traj files if they do not exist'
 			os.chdir(calc_dir+'/'+folder)
 			os.system('cp '+scripts_dir+'/convert-qchem-output-to-ase.py .')
@@ -186,10 +192,10 @@ for folder in folders:
 			data[folder]['original_info'] = data_original[ref]
 
 
-#print('Incomplete calculations:')
-#for item in data:
-#	if data[item]['status'] == 'incomplete':
-#		print(item)
+print('Incomplete calculations:')
+for item in data:
+	if data[item]['status'] == 'incomplete':
+		print(item)
 
 'saving output data'
 with open(data_dir+"/data_output.json", "w") as write_file:
