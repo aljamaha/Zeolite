@@ -11,8 +11,10 @@ Requirements: opt.out, input.xyz, dir_data.json
 'Inputs'
 exchange 	 = 'omegab97x-d'
 basis    	 = 'def2-sv(p)' 	#basis set [def2-sv(p) or def2-tzvpd]
-create_input_dir = '/home/aljama/Zeolite/create_input/'
+create_input_dir = '/home/aljama/BEA/original/create_input/'
 scripts_dir      = '/home/aljama/scripts/' 	#this is where qm-initial structure script is 
+Zeolite		 = 'BEA'
+mult		 = '1'			#multiplicity
 
 'Load information on qm region'
 with open("dir_data.json", "r") as read_file:
@@ -28,6 +30,7 @@ def rem_section():
 	f.write('exchange   '+exchange+'\n')
 	f.write('basis   \t'+basis+'\n')
 	f.write('AIMD_FIXED_ATOMS \t'+str(len(fixed_atoms))+'\n')
+	f.write('model_system_mult '+str(mult)+'\n')
 	f.write(text_rm)
 	f.write('$end\n\n')
 
@@ -62,7 +65,7 @@ def opt_section(fixed_atoms):
 
 def molecules_section():
 	'writes details of the #molecule section'
-	f.write('$molecule\n0  1\n')
+	f.write('$molecule\n0  '+str(mult)+'\n')
 	g = open('tmp', 'r')
 	f.write(g.read())
 	os.system('rm tmp')
@@ -84,9 +87,14 @@ atoms = io.read('input.xyz')
 n_atoms = len(atoms)
 os.system('cp '+scripts_dir+'/qchem-to-ase-all-atoms.py .')
 os.system('python qchem-to-ase-all-atoms.py opt.out input.xyz '+str(n_atoms))
-os.system('cp '+scripts_dir+'/connectivity.py .')
+os.system('cp '+create_input_dir+'/connectivity_NL.py .')
 fixed_atoms, qm_atoms = qm_fixed_regions()
-os.system('python connectivity.py full-atoms.xyz '+str(qm_atoms)+' > tmp')
+for i in range(1,1000):
+	if os.path.exists('traj-full-atoms/'+str(i)+'.xyz') == False:
+		break
+i = i-1
+os.system('cp traj-full-atoms/'+str(i)+'.xyz full-atoms.xyz')	
+os.system('python connectivity_NL.py full-atoms.xyz '+str(qm_atoms)+' '+Zeolite+' > tmp')
 
 '''writing opt.in'''
 f = open('opt.in','w')
