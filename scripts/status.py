@@ -4,12 +4,11 @@ from ase import io
 'Gives a summary of the status of calculations'
 
 'Inputs'
-dir_name     = 'Zeolite-NO'
+dir_name     = 'BEA/Pd1'
 
 'Directroies'
 calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
 data_dir    = '/home/aljama/'+dir_name+'/data/'		#directory where data are saved
-cwd = os.getcwd()
 
 def folders_list(wd):
 	'list of folders in a directory'
