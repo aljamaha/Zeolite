@@ -4,7 +4,7 @@ from ase import io
 'Gives a summary of the status of calculations'
 
 'Inputs'
-dir_name     = 'BEA/Pd1'
+dir_name     = 'BEA/H'
 
 'Directroies'
 calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
@@ -67,6 +67,25 @@ def check_status(item):
 			break
 	return tmp
 
+def max_status():
+	'''
+	checks if calculation that run max steps is stuck (atoms are freezing)
+	Outputs:
+		failed - atoms are frozen
+		pass   - need a restart
+	'''
+	os.system('cat opt.out | grep NO > tmp')
+	lines = [line.rstrip('\n') for line in open('tmp')]  #this is the best way
+	k = 0
+	for line in lines:
+		if '***' in line:
+			k+=1
+	if k > 5:
+		tmp = 'fail'
+	else:
+		tmp = 'pass'
+	return tmp
+
 'Load data'
 try:
 	with open(data_dir+"/data_output.json", "r") as read_file:
@@ -76,7 +95,7 @@ except:
 
 folders = folders_list(calc_dir)	#folders in calculations/directory
 running_jobs   = running_jobs_list()	#list of the running jobs
-
+restart = []
 for item in data:
 	if 'def' in item:
 		if data[item]['status'] == 'complete':
@@ -96,7 +115,11 @@ for item in data:
 					else:
 						if check_status(item) == 'MAXIMUM':
 							'Reached Max optimization cycle'
-							print(item, '\t\t', 'Maximum opt cycle is reached')
+							if max_status() == 'pass':
+								print(item, '\t\t', 'Maximum opt cycle is reached. Need a restart')
+								restart.append(item)
+							else:
+								print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
 						elif check_status(item) == 'FAILED':
 							'Calc Failed'
 							print(item, '\t\t', 'Failed')
@@ -105,3 +128,5 @@ for item in data:
 							print(item, '????') 
 			except:
 				pass
+
+print('Calculations require restart:', restart)
