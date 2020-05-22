@@ -4,7 +4,7 @@ from ase import io
 'Gives a summary of the status of calculations'
 
 'Inputs'
-dir_name     = 'BEA/H'
+dir_name     = 'BEA/BEA_qm_region_H'
 
 'Directroies'
 calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
@@ -67,6 +67,19 @@ def check_status(item):
 			break
 	return tmp
 
+def comp(item):
+	'check opt.out if calculation has completed'
+	os.chdir(calc_dir+'/'+item)
+	os.system('tail opt.out > tmp')
+	tmp = False
+	lines =  [line.rstrip('\n') for line in open(calc_dir+'/'+item+'/tmp')]
+	os.system('rm tmp')
+	for line in lines:
+		if 'Thank you very much for using Q-Chem' in line:
+			tmp = True
+			break
+	return tmp
+
 def max_status():
 	'''
 	checks if calculation that run max steps is stuck (atoms are freezing)
@@ -86,28 +99,24 @@ def max_status():
 		tmp = 'pass'
 	return tmp
 
-'Load data'
-try:
-	with open(data_dir+"/data_output.json", "r") as read_file:
-		data = json.load(read_file)		#output data
-except:
-	print('Data not available')
-
 folders = folders_list(calc_dir)	#folders in calculations/directory
 running_jobs   = running_jobs_list()	#list of the running jobs
-restart = []
-for item in data:
+restart, failed, not_sure, frozen, Running, completed = [],[],[],[],[],[]
+
+for item in folders:
 	if 'def' in item:
-		if data[item]['status'] == 'complete':
+		if comp(item) == True:
 			'completed calculations'
 			print(item,'\t\t', 'Completed')
+			completed.append(item)
 		else:
 			job_ids = job_id_list(calc_dir+'/'+item)
 			try:
 				mutual  = set(running_jobs) & set(job_ids)   
 				if len(mutual) != 0:
 					'Running calculations'
-					print(item, '\t\t', 'Running')	
+					print(item, '\t\t', 'Running')
+					Running.append(item)	
 				else:
 					if os.path.exists(calc_dir+'/'+item+'/opt.out') == False:
 						'Did not start Calculations'
@@ -120,13 +129,21 @@ for item in data:
 								restart.append(item)
 							else:
 								print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
+								frozen.append(item)
 						elif check_status(item) == 'FAILED':
 							'Calc Failed'
+							faild.append(item)
 							print(item, '\t\t', 'Failed')
 						else:
 							'Not sure!'
 							print(item, '????') 
+							not_sure.append(item)
 			except:
 				pass
 
-print('Calculations require restart:', restart)
+print('Calculations require restart:', len(restart), restart)
+print('Failed:', len(failed), failed)
+print('???:', len(not_sure), not_sure)
+print('Frozen!:', len(frozen), frozen)
+print('Running:', len(Running), Running)
+print('Completed:', len(completed), completed)
