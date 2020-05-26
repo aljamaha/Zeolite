@@ -12,9 +12,9 @@ Results Analysis
 plotting    	    = False		#if True, plot results for each reference structure
 sorted_plot	    = True		#if True, bar plots of energies is sorted from lowest to highest
 plt_ref_label	    = True		#if True, add label of the reference to the overall plot
-plotting_overall    = False		#if True, make an overall plot of all results
-dir_Pd		    = 'CHA-Pd+1'	#name of dir where the calculations are saved
-dir_H		    = 'CHA-full-MR'	#name of directory where comensating protons are saved
+#plotting_overall    = False		#if True, make an overall plot of all results
+dir_Pd		    = 'BEA/Pd1'	#name of dir where the calculations are saved
+dir_H		    = 'BEA/H'	#name of directory where comensating protons are saved
 
 'Directory names'
 data_dir    = '/home/aljama/'+dir_Pd+'/data/'			#dir where json data are saved
@@ -54,11 +54,10 @@ for ref in references:
 	'loop over each reference'
 	x_pos, E, first_item, O_d, label = [],[], True, [],[]	#For plotting purposes
 
-	if os.path.isdir(results_dir+ref) == False:
-		'create folder if it does not exist'
-		os.system('mkdir '+results_dir+ref)
-
-	os.chdir(results_dir+ref)
+	#if os.path.isdir(results_dir+ref) == False:
+	#	'create folder if it does not exist'
+	#	os.system('mkdir '+results_dir+ref)
+	#os.chdir(results_dir+ref)
 
 	for item in references[ref]:
 		'each item under reference'
@@ -68,7 +67,7 @@ for ref in references:
 			'check calcuation dir is available'
 			if data_output[data_output_entry]['status'] == 'complete':
 				'check calc is completed, then copy traj files to new folder'
-				os.system('cp '+calc_dir+'/'+data_output_entry+'/qm-initial.traj '+item[0:-5]+'.traj')
+				#os.system('cp '+calc_dir+'/'+data_output_entry+'/qm-initial.traj '+item[0:-5]+'.traj')
 				x_pos.append(int(index))	#x-asis position
 				if first_item == True:
 					E_ref = data_output[data_output_entry]['energy']
@@ -88,6 +87,7 @@ for ref in references:
 
 
 	if sorted_plot == True:
+		if len(E) >0: #avoid references not calculated yet
 			'bar plot (sorted)'
 			new_x, new_E, x_pts = sort(x_pos, E)
 			plt.bar(x_pts, new_E, align='center', alpha=1)
