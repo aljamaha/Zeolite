@@ -13,13 +13,13 @@ add a description here
 plotting    	    = True		#if True, plot results for each reference structure
 plot_individual	    = True		#show individual plots for each reference (as a function of O-O distance)
 sorted_plot	    = False		#if True, bar plots of energies is sorted from lowest to highest
-not_sorted	    = False		#make a plot of all data aggregated (O-distance vs. Energy)
+not_sorted	    = True		#make a plot of all data aggregated (O-distance vs. Energy)
 plotting_overall    = True		#if True, make an overall plot of all results
 label_pts	    = False		#add labels to pts in scatter plt
-Al_shading	    = True		#add vertical line referring to Al-Al distance
-data_dir    = '/home/aljama/CHA-full-MR/data/'			#dir where json data are saved
-calc_dir    = '/home/aljama/CHA-full-MR/calculations/'		#dir where calculations are done
-results_dir = '/home/aljama/CHA-full-MR/results-analysis/' 	#dire where results are to be saved
+Al_shading	    = False		#add vertical line referring to Al-Al distance
+data_dir    = '/home/aljama/BEA/H/data/'			#dir where json data are saved
+calc_dir    = '/home/aljama/BEA/H/calculations/'		#dir where calculations are done
+#results_dir = '/home/aljama/CHA-full-MR/results-analysis/' 	#dire where results are to be saved
 #colors      = ['g','b','r','k','y','c','m']
 
 'Load data from json files'
@@ -209,11 +209,11 @@ for ref in references:
 	'loop over each reference'
 	x_pos, E, first_item, O_d, label = [],[], True, [],[]	#For plotting purposes
 
-	if os.path.isdir(results_dir+ref) == False:
-		'create folder if it does not exist'
-		os.system('mkdir '+results_dir+ref)
+	#if os.path.isdir(results_dir+ref) == False:
+	#	'create folder if it does not exist'
+	#	os.system('mkdir '+results_dir+ref)
 
-	os.chdir(results_dir+ref)
+	#os.chdir(results_dir+ref)
 
 	for item in references[ref]:
 		'each item under reference'
@@ -223,7 +223,7 @@ for ref in references:
 			'check calcuation dir is available'
 			if data_output[data_output_entry]['status'] == 'complete':
 				'check calc is completed, then copy traj files to new folder'
-				os.system('cp '+calc_dir+'/'+data_output_entry+'/qm-initial.traj '+item[0:-5]+'.traj')
+				#os.system('cp '+calc_dir+'/'+data_output_entry+'/qm-initial.traj '+item[0:-5]+'.traj')
 				x_pos.append(int(index))	#x-asis position
 				if first_item == True:
 					E_ref = data_output[data_output_entry]['energy']
@@ -244,40 +244,41 @@ for ref in references:
 				
 				label.append(index)
 
-	if plotting == True:	
-		if sorted_plot == True:
-			'bar plot (sorted)'
-			new_x, new_E, x_pts = sort(x_pos, E)
-			plt.bar(x_pts, new_E, align='center', alpha=1)
-			plt.xticks(x_pts, new_x)
-			plt.ylabel('Energy (eV)')
-			plt.show()
+	if len(E) > 0:
+		if plotting == True:	
+			if sorted_plot == True:
+				'bar plot (sorted)'
+				new_x, new_E, x_pts = sort(x_pos, E)
+				plt.bar(x_pts, new_E, align='center', alpha=1)
+				plt.xticks(x_pts, new_x)
+				plt.ylabel('Energy (eV)')
+				plt.show()
 
-		elif not_sorted == True:
-			'bar plot (not sorted)'
-			plt.bar(x_pos, E, align='center', alpha=1)
-			plt.xticks(x_pos, x_pos)
-			plt.ylabel('Energy (eV)')
-			plt.show()
-		if plotting_overall == True:
-			try:
-				tmp, tmp_ind = np.min(E), E.index(min(E))
-				plt.plot(O_d[tmp_ind], tmp - np.min(E) , 'sk', markersize=10)
-				plt.plot(O_d, E - np.min(E), 'o', markersize=6,label=ref[0:-5])
-				plt.xlabel('O-O Distance (A)', fontsize = 14)
-				plt.ylabel('Energy (eV)', fontsize = 14)
-				plt.tick_params(labelsize=14)
-				if Al_shading == True:
-					plt.plot([Al_distance,Al_distance],[-2,2],'r--')
-					plt.plot([Al_distance-0.8,Al_distance-0.8],[-2,2],'k--')
-					plt.plot([Al_distance+0.8,Al_distance+0.8],[-2,2],'k--')
-				if label_pts == True:
-					for i, lab in enumerate(label):
-						plt.text(O_d[i], E[i], lab)
-				if plot_individual == True:
-					plt.show()
-			except:
-				pass
+			elif not_sorted == True:
+				'bar plot (not sorted)'
+				plt.bar(x_pos, E, align='center', alpha=1)
+				plt.xticks(x_pos, x_pos)
+				plt.ylabel('Energy (eV)')
+				plt.show()
+			if plotting_overall == True:
+				try:
+					tmp, tmp_ind = np.min(E), E.index(min(E))
+					plt.plot(O_d[tmp_ind], tmp - np.min(E) , 'sk', markersize=10)
+					plt.plot(O_d, E - np.min(E), 'o', markersize=6,label=ref[0:-5])
+					plt.xlabel('O-O Distance (A)', fontsize = 14)
+					plt.ylabel('Energy (eV)', fontsize = 14)
+					plt.tick_params(labelsize=14)
+					if Al_shading == True:
+						plt.plot([Al_distance,Al_distance],[-2,2],'r--')
+						plt.plot([Al_distance-0.8,Al_distance-0.8],[-2,2],'k--')
+						plt.plot([Al_distance+0.8,Al_distance+0.8],[-2,2],'k--')
+					if label_pts == True:
+						for i, lab in enumerate(label):
+							plt.text(O_d[i], E[i], lab)
+					if plot_individual == True:
+						plt.show()
+				except:
+					pass
 
 if plotting_overall == True:
 	plt.legend()
