@@ -212,7 +212,7 @@ for calc in calculations:
 				'copy GGA results to hGGA if available'	
 				try:
 					os.system('cp '+calc_dir+'/'+calc+'-opt-B97-D3-def2-svp-ref-'+data[calc+'.traj']['reference']+'/full-atoms.xyz input.xyz')
-					atoms = io.read('input.xzy')
+					atoms = io.read('input.xyz')
 				except:
 					atoms = io.read('input.traj')
 					atoms.write('input.xyz')
