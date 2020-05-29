@@ -8,17 +8,17 @@ import json
 Running calculations on selected strucutres. Provide Inputs below
 '''
 'Inputs'
-dir_name     = 'BEA/H'	#name of the parent dir
-multiplicity = 1		#multiplicity of the structure
-exchange     = 'omegab97x-d'		#'omegab97x-d' or 'B97-D3'
-job_type     = 'sp' 		#either sp or opt
-zeolite      = 'BEA'		#zeolite name
-THRESH	     = False
-THRESH_value = 13
-#calc         = [1798,1798+32]		#if continous list, input first and last. Otherwise, input individual entries
-#calc	     = [506, 507, 508, 509, 510, 511, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 3302, 3303, 3304, 3305, 3306, 3307, 3308, 3309, 3310, 3311, 3312, 3313, 3314, 3315, 3316, 3317, 3318, 3319, 3320, 3321, 3322, 3323, 3324, 3325, 3326, 3327, 3328, 3329, 3330, 3331, 3332, 3333, 4906, 4907, 4908, 4909, 4910, 4911, 4912, 4913, 4914, 4915, 4916, 4917, 4918, 4919, 4920, 4921, 4922, 4923, 4924, 4925, 4926, 4927, 4928, 4929, 4930, 4931, 4932, 4933, 4934, 4935, 4936, 4937]
-#calc = [394, 395, 396, 397, 398, 399, 400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 1798, 1799, 1800, 1801, 1802, 1803, 1804, 1805, 1806, 1807, 1808, 1809, 1810, 1811, 1812, 1813, 2602, 2603, 2604, 2605, 2606, 2607, 2608, 2609, 2610, 2611, 2612, 2613, 2614, 2615, 2616, 2617]
-calc = [278, 279, 280, 281, 746, 747, 748, 749, 1214, 1215, 1216, 1217, 1714, 1715, 1716, 1717, 2214, 2215, 2216, 2217, 2682, 2683, 2684, 2685, 3150, 3151, 3152, 3153, 3634, 3635, 3636, 3637, 4134, 4135, 4136, 4137]
+dir_name      = 'BEA/Pd1'	#name of the parent dir
+multiplicity  = 2		#multiplicity of the structure
+exchange      = 'omegab97x-d'		#'omegab97x-d' or 'B97-D3'
+job_type      = 'opt' 		#either sp or opt
+zeolite       = 'BEA'		#zeolite name
+THRESH	      = False
+THRESH_value  = 13
+scf_algorithm = 'diis'
+calc	      = [506, 506+32]
+#calc	      = ['2306', '2307', '2308', '2309', '2310', '2311', '2312', '2313', '2314', '2315', '2316', '2317', '2318', '2319', '2320', '2321', '2322', '2323', '2324', '2325', '2326', '2327', '2328', '2329', '2330', '2331', '2332', '2333', '2334', '2335', '2336', '2337', '2434', '2435', '2436', '2437', '2438', '2439', '2440', '2441', '2442', '2443', '2444', '2445', '2446', '2447', '2448', '2449', '2450', '2451', '2452', '2453', '2454', '2455', '2456', '2457', '2458', '2459', '2460', '2461', '2462', '2463', '2464', '2465', '2850', '2851', '2852', '2853', '2854', '2855', '2856', '2857', '2858', '2859', '2860', '2861', '2862', '2863', '2864', '2865', '2866', '2867', '2868', '2869', '2870', '2871', '2872', '2873', '2874', '2875', '2876', '2877', '2878', '2879', '2880', '2881', '3270', '3271', '3272', '3273', '3274', '3275', '3276', '3277', '3278', '3279', '3280', '3281', '3282', '3283', '3284', '3285', '3286', '3287', '3288', '3289', '3290', '3291', '3292', '3293', '3294', '3295', '3296', '3297', '3298', '3299', '3300', '3301', '4330', '4331', '4332', '4333', '4334', '4335', '4336', '4337', '4338', '4339', '4340', '4341', '4342', '4343', '4344', '4345', '4346', '4347', '4348', '4349', '4350', '4351', '4352', '4353', '4354', '4355', '4356', '4357', '4358', '4359', '4360', '4361', '4394', '4395', '4396', '4397', '4398', '4399', '4400', '4401', '4402', '4403', '4404', '4405', '4406', '4407', '4408', '4409', '4410', '4411', '4412', '4413', '4414', '4415', '4416', '4417', '4418', '4419', '4420', '4421', '4422', '4423', '4424', '4425', '4842', '4843', '4844', '4845', '4846', '4847', '4848', '4849', '4850', '4851', '4852', '4853', '4854', '4855', '4856', '4857', '4858', '4859', '4860', '4861', '4862', '4863', '4864', '4865', '4866', '4867', '4868', '4869', '4870', '4871', '4872', '4873', '5134', '5135', '5136', '5137', '5138', '5139', '5140', '5141', '5142', '5143', '5144', '5145', '5146', '5147', '5148', '5149', '5150', '5151', '5152', '5153', '5154', '5155', '5156', '5157', '5158', '5159', '5160', '5161', '5162', '5163', '5164', '5165']
+
 print('Directory name', dir_name)
 
 #cont_check = input('Press Enter to Continue ..')
@@ -64,6 +64,7 @@ def rem_section():
 	f.write('exchange   '+exchange+'\n')
 	f.write('basis   \t'+basis+'\n')
 	f.write('AIMD_FIXED_ATOMS \t'+str(len(fixed_atoms))+'\n')
+	f.write('scf_algorithm\t'+scf_algorithm+'\n')
 	f.write(text_rm)
 	f.write('model_system_mult '+str(multiplicity)+'\n')
 	if THRESH == True:
@@ -198,19 +199,25 @@ for calc in calculations:
 		except:
 			print('this is likely a duplicate that has been deleted')
 			continue
-		
 			
 		'avoid generating input for sp calculations where opt is incomplete'	
 		if os.path.exists(calc_dir+'/'+calc+'-'+details+'-ref-'+data[calc+'.traj']['reference']) is not True:
 			os.system('mkdir '+calc_dir+'/'+calc+'-'+details+'-ref-'+data[calc+'.traj']['reference'])
 		os.chdir(calc_dir+'/'+calc+'-'+details+'-ref-'+data[calc+'.traj']['reference'])
 
-
 		if basis == 'def2-sv(p)':
 			os.system('cp '+struc_dir+'/'+calc+'.traj input.traj')
-			atoms = io.read('input.traj')
+
+			if exchange == 'omegab97x-d':	
+				'copy GGA results to hGGA if available'	
+				try:
+					os.system('cp '+calc_dir+'/'+calc+'-opt-B97-D3-def2-svp-ref-'+data[calc+'.traj']['reference']+'/full-atoms.xyz input.xyz')
+					atoms = io.read('input.xzy')
+				except:
+					atoms = io.read('input.traj')
+					atoms.write('input.xyz')
+				
 			n_atoms = len(atoms)
-			atoms.write('input.xyz')
 			clean_input('input.xyz')
 			
 		elif basis == 'def2-tzvpd':
