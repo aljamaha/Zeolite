@@ -83,12 +83,12 @@ def comp(item):
 		pass
 	return tmp
 
-def max_status():
+def frozen_atoms():	
 	'''
-	checks if calculation that run max steps is stuck (atoms are freezing)
+	checks if atoms are stuck (frozen)
 	Outputs:
-		failed - atoms are frozen
-		pass   - need a restart
+		True   - atoms are frozen
+		False  - atoms are not frozen	 
 	'''
 	os.system('cat opt.out | grep NO > tmp')
 	lines = [line.rstrip('\n') for line in open('tmp')]  #this is the best way
@@ -97,54 +97,70 @@ def max_status():
 		if '***' in line:
 			k+=1
 	if k > 5:
-		tmp = 'fail'
+		tmp = True
 	else:
-		tmp = 'pass'
+		tmp = False
 	return tmp
 
 folders = folders_list(calc_dir)	#folders in calculations/directory
 running_jobs   = running_jobs_list()	#list of the running jobs
-restart, failed, not_sure, frozen, Running, completed = [],[],[],[],[],[]
+restart, failed, not_sure, frozen, Running, completed, terminate, terminate_id = [],[],[],[],[],[],[],[]
 
 for item in folders:
 	if 'def' in item:
 		if os.path.exists(calc_dir+'/'+item+'/opt.out') == False:
-			print(item, '\t\tDid not start') 
+			'Did not Start'
+			print(item, '\t\t', 'Did not start') 
 		elif comp(item) == True:
 			'completed calculations'
-			print(item,'\t\t', 'Completed')
+			print(item, '\t\t', 'Completed')
 			completed.append(item)
 		else:
-			job_ids = job_id_list(calc_dir+'/'+item)
-			try:
+			try:	
+
+				job_ids = job_id_list(calc_dir+'/'+item)
 				mutual  = set(running_jobs) & set(job_ids)   
-				if len(mutual) != 0:
-					'Running calculations'
+
+				if frozen_atoms() == True:
+					'checks atoms are not stuck'
+					if len(mutual) != 0:
+						'Frozen and Running calculations'
+						print(item, '\t\t', 'Must terminate')
+						terminate.append(item)
+						for i in mutual:
+							terminate_id.append(int(i))
+					else:
+						'Frozen finished calculations'
+						frozen.append(item)	
+						print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
+				elif len(mutual) != 0:
+					'Running calculations (not frozen)'
 					print(item, '\t\t', 'Running')
 					Running.append(item)	
 				else:
-					if check_status(item) == 'MAXIMUM':
+					tmp_status = check_status(item)
+					if tmp_status == 'MAXIMUM':
 						'Reached Max optimization cycle'
-						if max_status() == 'pass':
-							print(item, '\t\t', 'Maximum opt cycle is reached. Need a restart')
-							restart.append(item)
-						else:
-							print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
-							frozen.append(item)
-					elif check_status(item) == 'FAILED':
+						#if max_status() == 'pass':
+						print(item, '\t\tMaximum opt reached. Restart')
+						restart.append(item)
+					elif tmp_status == 'FAILED':
 						'Calc Failed'
-						faild.append(item)
-						print(item, '\t\t', 'Failed')
+						failed.append(item)
+						print(item, '\t\tFailed')
 					else:
 						'Not sure!'
-						print(item, '????') 
+						print(item, 'Not sure!') 
 						not_sure.append(item)
 			except:
-				pass
+				print(item, '\t\tExcept failed')
+				not_sure.append(item)
 
-print('Calculations require restart:', len(restart), restart)
-print('Frozen!:', len(frozen), frozen)
-print('Failed:', len(failed), failed)
-print('Not sure!:', len(not_sure), not_sure)
-print('Running:', len(Running), Running)
+print('*******\nCalculations require restart:', len(restart), restart)
+print('*******\nFrozen!:', len(frozen), frozen)
+print('*******\nFailed calculations', len(failed), failed)
+print('*******\nNot sure!:', len(not_sure), not_sure)
+print('*******\nRunning:', len(Running), Running)
+print('*******\nMust terminate:', len(terminate), terminate)
+print('*******\nTerminate id:', terminate_id)
 #print('Completed:', len(completed), completed)
