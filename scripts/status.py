@@ -1,14 +1,18 @@
 import os, json, sys
 from ase import io
+from copy import deepcopy
 
 'Gives a summary of the status of calculations'
 
 'Inputs'
-dir_name     = 'BEA/Pd1'
+#dir_name     = 'BEA/Pd1/calculations/B97-D3-large-qm/B97-D3-large-qm/'
+dir_name = 'BEA/Pd1'
 
 'Directroies'
 calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
 data_dir    = '/home/aljama/'+dir_name+'/data/'		#directory where data are saved
+
+data = {}
 
 def folders_list(wd):
 	'list of folders in a directory'
@@ -104,17 +108,19 @@ def frozen_atoms():
 
 folders = folders_list(calc_dir)	#folders in calculations/directory
 running_jobs   = running_jobs_list()	#list of the running jobs
-restart, failed, not_sure, frozen, Running, completed, terminate, terminate_id = [],[],[],[],[],[],[],[]
+restart, failed, not_sure, frozen, Running, completed, terminate, terminate_id = [],[],[],[],[],[],[],''
 
 for item in folders:
 	if 'def' in item:
 		if os.path.exists(calc_dir+'/'+item+'/opt.out') == False:
 			'Did not Start'
 			print(item, '\t\t', 'Did not start') 
+			data[item] = 'Did not start'
 		elif comp(item) == True:
 			'completed calculations'
 			print(item, '\t\t', 'Completed')
 			completed.append(item)
+			data[item] = 'Completed'
 		else:
 			try:	
 
@@ -128,32 +134,38 @@ for item in folders:
 						print(item, '\t\t', 'Must terminate')
 						terminate.append(item)
 						for i in mutual:
-							terminate_id.append(int(i))
+							terminate_id = terminate_id+' '+str(i)
+						data[item] = 'Frozen'
 					else:
 						'Frozen finished calculations'
 						frozen.append(item)	
 						print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
+						data[item] = 'Frozen'
 				elif len(mutual) != 0:
 					'Running calculations (not frozen)'
 					print(item, '\t\t', 'Running')
 					Running.append(item)	
+					data[item] = 'Running'
 				else:
 					tmp_status = check_status(item)
 					if tmp_status == 'MAXIMUM':
 						'Reached Max optimization cycle'
-						#if max_status() == 'pass':
 						print(item, '\t\tMaximum opt reached. Restart')
 						restart.append(item)
+						data[item] = 'Restart'
 					elif tmp_status == 'FAILED':
 						'Calc Failed'
 						failed.append(item)
 						print(item, '\t\tFailed')
+						data[item] = 'Failed'
 					else:
 						'Not sure!'
 						print(item, 'Not sure!') 
 						not_sure.append(item)
+						data[item] = 'Failed'
 			except:
 				print(item, '\t\tExcept failed')
+				data[item] = 'Failed'
 				not_sure.append(item)
 
 print('*******\nCalculations require restart:', len(restart), restart)
@@ -164,3 +176,61 @@ print('*******\nRunning:', len(Running), Running)
 print('*******\nMust terminate:', len(terminate), terminate)
 print('*******\nTerminate id:', terminate_id)
 #print('Completed:', len(completed), completed)
+
+'identify available traj files'
+traj = {} #traj[item][thoery type][calc type][status]
+for item in data:
+	i = item.find('f-')
+	if item[i+2:] not in traj:
+		traj[item[i+2:]] = {}
+
+'prepare dictionaries to collect data'
+traj_copy = deepcopy(traj)
+theory_level = ['GGA','hGGA']
+calc_type    = ['opt','sp']
+results      = ['running','failed','complete']
+for t in traj_copy:
+	traj[t] = {}
+	for th in theory_level:
+		traj[t][th] = {}
+		for ty in calc_type:
+			traj[t][th][ty] = {}
+			for r in results:
+				traj[t][th][ty][r] = 0
+			
+'collect completed, failed, running info into the traj dict'
+traj_copy = deepcopy(traj)
+for t in traj_copy:
+	for item in data:
+		if item[item.find('f-')+2:] == t:
+			'identify calculations of the same reference'
+
+			'level of theory'
+			if 'omega' in item:
+				theory = 'hGGA'
+			elif 'B97' in item:
+				theory = 'GGA'
+
+			'calc_type'
+			if 'opt' in item:
+				calc_type = 'opt'
+			elif 'sp' in item:
+				calc_type = 'sp'
+
+			'completed/running/failed'
+			if data[item] == 'Completed':
+				traj[t][theory][calc_type]['complete'] += 1
+
+			elif data[item] == 'Running':
+				traj[t][theory][calc_type]['running'] += 1
+			else:	
+				traj[t][theory][calc_type]['failed']  += 1
+	
+
+'print information'
+for item in traj:
+	print('\n** ', item)
+	for theory in traj[item]:
+		for TYPE in traj[item][theory]:		
+			print(theory, TYPE, traj[item][theory][TYPE])
+	
