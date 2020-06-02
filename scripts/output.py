@@ -7,7 +7,7 @@ from copy import deepcopy
 'Inputs'
 dir_name     = 'BEA/Pd1'
 traj         = False   #prints traj files of qm region
-full	     = False   #prints traj files of full atoms
+full	     = False  #prints traj files of full atoms
 
 'Directroies'
 calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
@@ -33,23 +33,14 @@ def extract_energy(output_file):
 	lines = f.read().split("\n")
 	f.close()
 
-	step, energy,steps = 0,[],[]
+	E = 'nan'
 
 	for line in lines:
 		'read energy per step'
-		if 'Total energy in the final basis set' in line:
-			step += 1
-			if step == 1:
-				if line[-14:] == 'sis set = -nan':
-					return 'nan'
-				else:
-					E0 = float(line[-14:])
-			energy.append(float(line[-14:])- E0)
-			steps.append(step)
+		if 'Total energy' in line:
+			E = float(line[-14:])
 
-	Final_Energy = energy[-1] + E0
-
-	return Final_Energy
+	return E
 
 def calc_status(wd):
 	'''
@@ -173,16 +164,17 @@ for folder in folders:
 			os.system('cp '+scripts_dir+'/convert-qchem-output-to-ase.py .')
 
 			if traj == True:
-				n_Al,n_Si, n_O = Al_Si_atoms()	#number of Al/Si atoms in qm region
-				H_qm = H_qm_region(n_O, n_Si, n_Al)  #H added to qm region to justify MM region
-				n_qm = data_original[ref]
-				n_qm = len(data_original[ref]['qm_region']) + H_qm #total atoms in qm region
-				n_qm = str(n_qm)
-				os.system('python convert-qchem-output-to-ase.py '+n_qm)
+				if 'opt' in folder:
+					n_Al,n_Si, n_O = Al_Si_atoms()	#number of Al/Si atoms in qm region
+					H_qm = H_qm_region(n_O, n_Si, n_Al)  #H added to qm region to justify MM region
+					n_qm = len(data_original[ref]['qm_region']) + H_qm #total atoms in qm region
+					n_qm = str(n_qm)
+					os.system('python convert-qchem-output-to-ase.py '+n_qm)
 
 			'print full traj of all atoms if they do not exist'
 			if full == True:
-				os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
+				if 'opt' in folder:
+					os.system('python '+scripts_dir+'qchem-to-ase-all-atoms.py '+output_file+' '+'input.xyz'+' '+str(data_original[ref]['total_atoms']))
 			
 			#'print traj files of surroundings'
 			#if surroundings == True:
