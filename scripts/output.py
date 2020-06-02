@@ -38,7 +38,8 @@ def extract_energy(output_file):
 	for line in lines:
 		'read energy per step'
 		if 'Total energy' in line:
-			E = float(line[-14:])
+			ind = line.find('=')
+			E   = float(line[ind+1:])
 
 	return E
 
@@ -143,14 +144,15 @@ for folder in folders:
 	'name of output file'
 	output_file = calc_status(calc_dir+'/'+folder)[1]
 
-	if tmp_energy != 'extracted':
+	#if tmp_energy != 'extracted':
+	if tmp_energy != '??':
 		'extract calculation detail/Energy'
 		data[folder]['calc']   = folder[index+1:] 
 		data[folder]['status'] = calc_status(calc_dir+'/'+folder)[0]
 		
 		if data[folder]['status'] == 'complete':
 			'extract energy if calculation is complete'
-			E = extract_energy(output_file)
+			E = extract_energy('opt.out')
 			data[folder]['energy'] = E
 			if E == 'nan':
 				data[folder]['status'] = 'incomplete'
