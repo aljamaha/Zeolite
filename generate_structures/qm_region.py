@@ -181,7 +181,7 @@ def smaller_mr(sub_list, N_list, data, traj):
 	return tmp, data
 
 
-def update_missing_MR(Al1, N_list, data, traj, n_MR_max, Al_atoms, Al2=''):
+def update_missing_MR(Al1, N_list, data, traj, n_MR_max, Al_atoms, MR_types, Al2=''):
 	'''
 	Identifies missing atoms in 6/8 MR not included in qm region (not NN to Al)
 	This is done by building a list [Al_index, N, NN, NNN, ..] and identifying if it completes 6/8 MR
@@ -215,29 +215,25 @@ def update_missing_MR(Al1, N_list, data, traj, n_MR_max, Al_atoms, Al2=''):
 					tmp.append(index)
 					store[al].append(tmp)
 	
-	'To be adjusted later'
-	MR_types = {}
-	MR_types['1Al in 1Al']  = [4,5]
-	MR_types['1Al in 2Al']  = [4]
-	MR_types['Al-Al'] 	= [4]
-	
 	'single Al MR'
 	for al in Al_atoms:
 		if len(Al_atoms) == 1:
-			mr_single = [4,5,6]
+			mr_single = MR_types['1Al in 1Al']
+			#mr_single = [4,5,6]
 		else:
-			mr_single = [4,5]
+			mr_single = MR_types['1Al in 2Al']
+			#mr_simr_single = [4,5]
 		
 		for mr in mr_single:
 			data = MR_single_Al(mr, al ,store[al] , data, traj, N_list, True)
-		for mr in range(mr_single[-1],7):
+		for mr in range(mr_single[-1],n_MR_max):
 			data = MR_single_Al(mr, al, store[al] , data, traj, N_list, False)
 
 		'Al-Al pair MR'
 		if len(Al_atoms) > 1:
 			for second_al in Al_atoms:
 				if al != second_al:
-					for mr in range(4,7):
+					for mr in range(4,n_MR_max):
 						'adding missing MR in the Al-Al pair'
 						data = MR_Al_Al_type(mr, al, second_al, store[al], data, traj, N_list, True)
 					#for mr in range(7,13):
@@ -246,7 +242,7 @@ def update_missing_MR(Al1, N_list, data, traj, n_MR_max, Al_atoms, Al2=''):
 	
 	return data
 
-def qm_region(data, traj, struc_dir,  N_list, total_original_atoms, cutoff, n_MR_max, turn_cutoff='off'):
+def qm_region(data, traj, struc_dir,  N_list, total_original_atoms, cutoff, n_MR_max, MR_types, turn_cutoff='off'):
 	'''
 	Objective:
 		- identifies elements in qm region of a zeolite structure based on Al atoms
@@ -293,9 +289,9 @@ def qm_region(data, traj, struc_dir,  N_list, total_original_atoms, cutoff, n_MR
 
 	'identify remaining atoms in the MR'
 	if len(Al_atoms) == 2:
-		update_missing_MR(Al_atoms[0], N_list, data, traj, n_MR_max, Al_atoms, Al_atoms[1])
+		update_missing_MR(Al_atoms[0], N_list, data, traj, n_MR_max, Al_atoms, MR_types, Al_atoms[1])
 	elif len(Al_atoms) == 1:
-		update_missing_MR(Al_atoms[0], N_list, data, traj, n_MR_max, Al_atoms, Al2='')
+		update_missing_MR(Al_atoms[0], N_list, data, traj, n_MR_max, Al_atoms, MR_types, Al2='')
 
 	'identify O atoms connected to Si in the qm region (only ones not accounted for yet)'
 	for item in N_list:
