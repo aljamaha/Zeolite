@@ -11,6 +11,7 @@ dir_name = 'BEA/Pd1'
 'Directroies'
 calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
 data_dir    = '/home/aljama/'+dir_name+'/data/'		#directory where data are saved
+cwd = os.getcwd()
 
 data = {}
 
@@ -61,10 +62,16 @@ def running_jobs_list():
 def check_status(item):
 	'check opt.out if calculation has failed'
 	tmp = False
-	lines =  [line.rstrip('\n') for line in open(calc_dir+'/'+item+'/opt.out')]
+	os.system('tail '+calc_dir+'/'+item+'/opt.out > tmp')
+	lines =  [line.rstrip('\n') for line in open(calc_dir+'/'+item+'/tmp')]
+	os.system('rm tmp')
+	
 	for line in lines:
 		if '**  MAXIMUM OPTIMIZATION CYCLES REACHED  **' in line:
 			tmp = 'MAXIMUM'
+			break
+		elif 'SCF failed to converge' in line:
+			tmp = 'SCF failed to converge' 
 			break
 		elif 'Please submit' in line:
 			tmp =  'FAILED'
@@ -109,6 +116,7 @@ def frozen_atoms():
 folders = folders_list(calc_dir)	#folders in calculations/directory
 running_jobs   = running_jobs_list()	#list of the running jobs
 restart, failed, not_sure, frozen, Running, completed, terminate, terminate_id = [],[],[],[],[],[],[],''
+scf_converge = []
 
 for item in folders:
 	if 'def' in item:
@@ -153,6 +161,10 @@ for item in folders:
 						print(item, '\t\tMaximum opt reached. Restart')
 						restart.append(item)
 						data[item] = 'Restart'
+					elif tmp_status == 'SCF failed to converge':
+						print(item, '\t\tScf Failed to converge')
+						scf_converge.append(item)
+						data[item] = 'SCF failed to converge'
 					elif tmp_status == 'FAILED':
 						'Calc Failed'
 						failed.append(item)
@@ -172,6 +184,7 @@ print('*******\nCalculations require restart:', len(restart), restart)
 print('*******\nFrozen!:', len(frozen), frozen)
 print('*******\nFailed calculations', len(failed), failed)
 print('*******\nNot sure!:', len(not_sure), not_sure)
+print('*******\nScf failed to converge!:', len(scf_converge), scf_converge)
 print('*******\nRunning:', len(Running), Running)
 print('*******\nMust terminate:', len(terminate), terminate)
 print('*******\nTerminate id:', terminate_id)
@@ -226,6 +239,9 @@ for t in traj_copy:
 			else:	
 				traj[t][theory][calc_type]['failed']  += 1
 	
+os.chdir(cwd)
+with open("status_info.json", "w") as write_file:
+    json.dump(traj, write_file, indent=4)
 
 'print information'
 for item in traj:
