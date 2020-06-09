@@ -129,64 +129,54 @@ for item in folders:
 			print(item, '\t\t', 'Completed')
 			completed.append(item)
 			data[item] = 'Completed'
-		else:
-			try:	
-
-				job_ids = job_id_list(calc_dir+'/'+item)
-				mutual  = set(running_jobs) & set(job_ids)   
-
-				if frozen_atoms() == True:
-					'checks atoms are not stuck'
-					if len(mutual) != 0:
-						'Frozen and Running calculations'
-						print(item, '\t\t', 'Must terminate')
-						terminate.append(item)
-						for i in mutual:
-							terminate_id = terminate_id+' '+str(i)
-						data[item] = 'Frozen'
-					else:
-						'Frozen finished calculations'
-						frozen.append(item)	
-						print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
-						data[item] = 'Frozen'
-				elif len(mutual) != 0:
-					'Running calculations (not frozen)'
-					print(item, '\t\t', 'Running')
-					Running.append(item)	
-					data[item] = 'Running'
-				else:
-					tmp_status = check_status(item)
-					if tmp_status == 'MAXIMUM':
-						'Reached Max optimization cycle'
-						print(item, '\t\tMaximum opt reached. Restart')
-						restart.append(item)
-						data[item] = 'Restart'
-					elif tmp_status == 'SCF failed to converge':
-						print(item, '\t\tScf Failed to converge')
-						scf_converge.append(item)
-						data[item] = 'SCF failed to converge'
-					elif tmp_status == 'FAILED':
-						'Calc Failed'
-						failed.append(item)
-						print(item, '\t\tFailed')
-						data[item] = 'Failed'
-					else:
-						'Not sure!'
-						print(item, 'Not sure!') 
-						not_sure.append(item)
-						data[item] = 'Failed'
-			except:
-				print(item, '\t\tExcept failed')
-				data[item] = 'Failed'
-				not_sure.append(item)
+		else:	
+			tmp_status = check_status(item)
+			if tmp_status == 'MAXIMUM':
+				'Reached Max optimization cycle'
+				print(item, '\t\tMaximum opt reached. Restart')
+				restart.append(item)
+				data[item] = 'Restart'
+			elif tmp_status == 'SCF failed to converge':
+				'SCF Failed to converge'
+				print(item, '\t\tScf Failed to converge')
+				scf_converge.append(item)
+				data[item] = 'SCF failed to converge'
+			else:
+				try:	
+					job_ids = job_id_list(calc_dir+'/'+item)
+					mutual  = set(running_jobs) & set(job_ids)   
+	
+					if frozen_atoms() == True:
+						'checks atoms are not stuck'
+						if len(mutual) != 0:
+							'Frozen and Running calculations'
+							print(item, '\t\t', 'Must terminate')
+							terminate.append(item)
+							for i in mutual:
+								terminate_id = terminate_id+' '+str(i)
+							data[item] = 'Frozen'
+						else:
+							'Frozen finished calculations'
+							frozen.append(item)	
+							print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
+							data[item] = 'Frozen'
+					elif len(mutual) != 0:
+						'Running calculations (not frozen)'
+						print(item, '\t\t', 'Running')
+						Running.append(item)	
+						data[item] = 'Running'
+				except:
+					print(item, '\t\tExcept failed')
+					data[item] = 'Failed'
+					not_sure.append(item)
 
 print('*******\nCalculations require restart:', len(restart), restart)
 print('*******\nFrozen!:', len(frozen), frozen)
-print('*******\nFailed calculations', len(failed), failed)
+#print('*******\nFailed calculations', len(failed), failed)
 print('*******\nNot sure!:', len(not_sure), not_sure)
 print('*******\nScf failed to converge!:', len(scf_converge), scf_converge)
-print('*******\nRunning:', len(Running), Running)
-print('*******\nMust terminate:', len(terminate), terminate)
+#print('*******\nRunning:', len(Running), Running)
+#print('*******\nMust terminate:', len(terminate), terminate)
 print('*******\nTerminate id:', terminate_id)
 #print('Completed:', len(completed), completed)
 
