@@ -165,8 +165,13 @@ for item in folders:
 						print(item, '\t\t', 'Running')
 						Running.append(item)	
 						data[item] = 'Running'
+					else:	
+						print(item, '\t\tNot sure')
+						data[item] = 'Failed'
+						not_sure.append(item)
+		
 				except:
-					print(item, '\t\tExcept failed')
+					print(item, '\t\tNot sure')
 					data[item] = 'Failed'
 					not_sure.append(item)
 
@@ -233,10 +238,11 @@ os.chdir(cwd)
 with open("status_info.json", "w") as write_file:
     json.dump(traj, write_file, indent=4)
 
+'''
 'print information'
 for item in traj:
 	print('\n** ', item)
 	for theory in traj[item]:
 		for TYPE in traj[item][theory]:		
 			print(theory, TYPE, traj[item][theory][TYPE])
-	
+'''	
