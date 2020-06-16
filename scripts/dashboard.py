@@ -52,25 +52,36 @@ summary[x.strftime("%x")] = total
 with open("summary_by_date.json", "w") as write_file:
     json.dump(summary, write_file, indent=4)
 
+d,GGA_opt,GGA_sp,hGGA_opt,hGGA_sp = [],[],[],[],[]
+
 'plot data'
 ax = plt.figure(1)
+
 for date in summary:
-	plt.subplot(2,2,1)
-	plt.plot(date, summary[date]['GGA']['opt']/(GGA_cumulative-4*9)*100,'bo',markersize=10,linewidth=4.0)
-	plt.ylim([0,100])
-	plt.title('GGA opt')
-	plt.subplot(2,2,2)
-	plt.plot(date, summary[date]['GGA']['sp']/(GGA_cumulative-4*8)*100,'ro-',markersize=10,linewidth=4.0)	
-	plt.ylim([0,100])
-	plt.title('GGA sp')
-	plt.subplot(2,2,3)
-	plt.plot(date, summary[date]['hGGA']['opt']/(hGGA_cumulative)*100,'go',markersize=10,linewidth=4.0)
-	plt.ylim([0,100])
-	plt.title('hGGA opt')
-	plt.subplot(2,2,4)
-	plt.plot(date, summary[date]['hGGA']['sp']/(hGGA_cumulative)*100,'ko-',markersize=10,linewidth=4.0)
-	plt.ylim([0,100])
-	plt.title('hGGA sp')
+	d.append(date)
+	GGA_opt.append(summary[date]['GGA']['opt']/(GGA_cumulative-4*9)*100)
+	GGA_sp.append(summary[date]['GGA']['sp']/(GGA_cumulative-4*9)*100)
+	hGGA_opt.append(summary[date]['hGGA']['opt']/(hGGA_cumulative)*100)
+	hGGA_sp.append(summary[date]['hGGA']['sp']/hGGA_cumulative*100)
+
+print(d)
+print(GGA_opt)
+plt.subplot(2,2,1)
+plt.plot(d, GGA_opt,'bo--',markersize=6,linewidth=3.0)
+plt.ylim([0,100])
+plt.title('GGA opt')
+plt.subplot(2,2,2)
+plt.plot(d, GGA_sp,'ro--',markersize=6,linewidth=3.0)
+plt.ylim([0,100])
+plt.title('GGA sp')
+plt.subplot(2,2,3)
+plt.plot(d, hGGA_opt,'go--',markersize=6,linewidth=3.0)
+plt.ylim([0,100])
+plt.title('hGGA opt')
+plt.subplot(2,2,4)
+plt.plot(d, hGGA_sp,'ko--',markersize=6,linewidth=3.0)
+plt.ylim([0,100])
+plt.title('hGGA sp')
 
 #plt.xlabel('Date', fontsize=18)
 #plt.ylabel('% of Completed Calculations', fontsize=18)
