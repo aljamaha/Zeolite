@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 'load full information on the status of the calculations'
-with open('status_info.json','r') as read:
+with open('info_status.json','r') as read:
 	traj = json.load(read)
 
 'load summarized data per day'
@@ -72,6 +72,8 @@ print(d)	#days
 print(GGA_opt)	#% of GGA optimized
 
 plt.plot(d, GGA_opt,'bo-',markersize=6,linewidth=3.0,label='GGA opt')
+GGA_opt = np.array(GGA_opt)
+plt.plot(d, GGA_opt*1.2,'bo--',markersize=6,linewidth=3.0)
 plt.plot([d[0],d[-1]],[(33*32+4*9)/GGA_cumulative*100, (33*32+4*9)/GGA_cumulative*100 ],'k--')
 plt.plot(d, GGA_sp,'b^-',markersize=6,linewidth=3.0,label='GGA sp')
 plt.plot(d, hGGA_opt,'ro-',markersize=6,linewidth=3.0,label='hGGA opt')

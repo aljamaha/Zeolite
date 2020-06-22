@@ -122,23 +122,23 @@ for item in folders:
 	if 'def' in item:
 		if os.path.exists(calc_dir+'/'+item+'/opt.out') == False:
 			'Did not Start'
-			print(item, '\t\t', 'Did not start') 
+			#print(item, '\t\t', 'Did not start') 
 			data[item] = 'Did not start'
 		elif comp(item) == True:
 			'completed calculations'
-			print(item, '\t\t', 'Completed')
+			#print(item, '\t\t', 'Completed')
 			completed.append(item)
 			data[item] = 'Completed'
 		else:	
 			tmp_status = check_status(item)
 			if tmp_status == 'MAXIMUM':
 				'Reached Max optimization cycle'
-				print(item, '\t\tMaximum opt reached. Restart')
+				#print(item, '\t\tMaximum opt reached. Restart')
 				restart.append(item)
 				data[item] = 'Restart'
 			elif tmp_status == 'SCF failed to converge':
 				'SCF Failed to converge'
-				print(item, '\t\tScf Failed to converge')
+				#print(item, '\t\tScf Failed to converge')
 				scf_converge.append(item)
 				data[item] = 'SCF failed to converge'
 			else:
@@ -150,7 +150,7 @@ for item in folders:
 						'checks atoms are not stuck'
 						if len(mutual) != 0:
 							'Frozen and Running calculations'
-							print(item, '\t\t', 'Must terminate')
+							#print(item, '\t\t', 'Must terminate')
 							terminate.append(item)
 							for i in mutual:
 								terminate_id = terminate_id+' '+str(i)
@@ -158,31 +158,30 @@ for item in folders:
 						else:
 							'Frozen finished calculations'
 							frozen.append(item)	
-							print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
+							#print(item, '\t\t', 'Atoms are frozen. Adjust initial position')
 							data[item] = 'Frozen'
 					elif len(mutual) != 0:
 						'Running calculations (not frozen)'
-						print(item, '\t\t', 'Running')
+						#print(item, '\t\t', 'Running')
 						Running.append(item)	
 						data[item] = 'Running'
 					else:	
-						print(item, '\t\tNot sure')
+						#print(item, '\t\tNot sure')
 						data[item] = 'Failed'
 						not_sure.append(item)
 		
 				except:
-					print(item, '\t\tNot sure')
+					#print(item, '\t\tNot sure')
 					data[item] = 'Failed'
 					not_sure.append(item)
 
 print('*******\nCalculations require restart:', len(restart), restart)
 print('*******\nFrozen!:', len(frozen), frozen)
-#print('*******\nFailed calculations', len(failed), failed)
 print('*******\nNot sure!:', len(not_sure), not_sure)
 print('*******\nScf failed to converge!:', len(scf_converge), scf_converge)
-#print('*******\nRunning:', len(Running), Running)
-#print('*******\nMust terminate:', len(terminate), terminate)
 print('*******\nTerminate id:', terminate_id)
+#print('*******\nMust terminate:', len(terminate), terminate)
+#print('*******\nRunning:', len(Running), Running)
 #print('Completed:', len(completed), completed)
 
 'identify available traj files'
@@ -235,7 +234,7 @@ for t in traj_copy:
 				traj[t][theory][calc_type]['failed']  += 1
 	
 os.chdir(cwd)
-with open("status_info.json", "w") as write_file:
+with open("info_status.json", "w") as write_file:
     json.dump(traj, write_file, indent=4)
 
 '''
