@@ -9,12 +9,13 @@ Results Analysis
 '''
 
 'Inputs'
-plotting    	    = False		#if True, plot results for each reference structure
+plotting    	    = True		#if True, plot results for each reference structure
 sorted_plot	    = True		#if True, bar plots of energies is sorted from lowest to highest
 plt_ref_label	    = True		#if True, add label of the reference to the overall plot
-#plotting_overall    = False		#if True, make an overall plot of all results
-dir_Pd		    = 'BEA/Pd1'	#name of dir where the calculations are saved
-dir_H		    = 'BEA/H'	#name of directory where comensating protons are saved
+dir_Pd		    = 'BEA/Pd1'		#name of dir where the calculations are saved
+dir_H		    = 'CHA-previous-calc/H/CHA-full-MR/'	#name of directory where comensating protons are saved
+exchange	    = 'omega'
+calc_type	    = 'sp' 		#opt or sp
 
 'Directory names'
 data_dir    = '/home/aljama/'+dir_Pd+'/data/'			#dir where json data are saved
@@ -50,6 +51,7 @@ Pd_H_d, Pd_H_d_all, minimum = [],[],{}	#saves minimum energy for each reference 
 for ref in references:
 
 	print(ref)
+	#print(len(data_original[ref]['qm_region'])+2,'\n')
 
 	'loop over each reference'
 	x_pos, E, first_item, O_d, label = [],[], True, [],[]	#For plotting purposes
@@ -62,34 +64,38 @@ for ref in references:
 	for item in references[ref]:
 		'each item under reference'
 		index = item[0:-5] #remves .traj from the name
-		data_output_entry = calc_index(index, data_output) #check corresponding name in data_output
+		data_output_entry = calc_index(index, data_output, exchange, calc_type) #check corresponding name in data_output
 		if data_output_entry != 'none':
 			'check calcuation dir is available'
-			if data_output[data_output_entry]['status'] == 'complete':
-				'check calc is completed, then copy traj files to new folder'
-				#os.system('cp '+calc_dir+'/'+data_output_entry+'/qm-initial.traj '+item[0:-5]+'.traj')
-				x_pos.append(int(index))	#x-asis position
-				if first_item == True:
-					E_ref = data_output[data_output_entry]['energy']
-				E.append( (data_output[data_output_entry]['energy']- E_ref)*27.2114 ) #convert from Hartree to e. values of energies for y-axis
-				first_item = False
-				label.append(index)
+			try:
+				if data_output[data_output_entry]['status'] == 'complete':
+					'check calc is completed, then copy traj files to new folder'
+					#os.system('cp '+calc_dir+'/'+data_output_entry+'/qm-initial.traj '+item[0:-5]+'.traj')
+					x_pos.append(int(index))	#x-asis position
+					if first_item == True:
+						E_ref = data_output[data_output_entry]['energy']
+					E.append( (data_output[data_output_entry]['energy']- E_ref)*27.2114 ) #convert from Hartree to e. values of energies for y-axis
+					#print(data_output[data_output_entry]['energy'])
+					first_item = False
+					label.append(index)
 
-				'Al-Al distance'
-				#atoms = io.read(calc_dir+data_output_entry+'/qm-initial.traj')
-				#Al_distance, n_Al = Al_Al(atoms)
-				'O-O distance'
-				#O_O_distance = O_O(atoms, n_Al)
-				#O_d.append( round(O_O_distance,3) )
-				'Pd-H distance'	
-				#Pd_H_distance = Pd_H(atoms, n_Al)
-				#Pd_H_d.append( round(Pd_H_distance,3) )
-
+					'Al-Al distance'
+					#atoms = io.read(calc_dir+data_output_entry+'/qm-initial.traj')
+					#Al_distance, n_Al = Al_Al(atoms)
+					'O-O distance'
+					#O_O_distance = O_O(atoms, n_Al)
+					#O_d.append( round(O_O_distance,3) )
+					'Pd-H distance'	
+					#Pd_H_distance = Pd_H(atoms, n_Al)
+					#Pd_H_d.append( round(Pd_H_distance,3) )
+			except:
+				pass
 
 	if sorted_plot == True:
 		if len(E) >0: #avoid references not calculated yet
 			'bar plot (sorted)'
 			new_x, new_E, x_pts = sort(x_pos, E)
+			print(new_x[0:7])
 			plt.bar(x_pts, new_E, align='center', alpha=1)
 			plt.xticks(x_pts, new_x)
 			plt.ylabel('Energy (eV)')
@@ -123,16 +129,20 @@ for ref in references:
 		plt.show()
 	'''
 
+exit()
+
 E,E_label,ref_label, first_item = [],[],{}, True
 
 '''Plot rxn energy [bar plot]'''
 for entry in minimum:
 	if minimum[entry] != '':
 		ref_H = data_original[entry]['reference'] #reference for 16 H calculations
-		zeolite_H = min_H(ref_H, H_data)
-		data_output_entry = calc_index(str(minimum[entry]), data_output) #check corresponding name in data_output
+		zeolite_H = min_H(ref_H, H_data, calc_type)
+		data_output_entry = calc_index(str(minimum[entry]), data_output, calc_type) #check corresponding name in data_output
 		E_qmmm = data_output[data_output_entry]['energy']
 		E_rxn = rxn_energy(E_qmmm, zeolite_H, 1)
+		print(entry, round(E_rxn,2))
+		
 		if first_item == True:
 			E_ref = deepcopy(E_rxn)
 			first_item = False
