@@ -10,14 +10,13 @@ Running calculations on selected strucutres. Provide Inputs below
 'Inputs'
 dir_name      = 'BEA/Pd1'	#name of the parent dir
 multiplicity  = 2		#multiplicity of the structure
-exchange      = 'omegab97x-d'		#'omegab97x-d' or 'B97-D3'
+exchange      = 'omegab97x-d'	#'omegab97x-d' or 'B97-D3'
 job_type      = 'opt' 		#either sp or opt
 zeolite       = 'BEA'		#zeolite name
 THRESH	      = False
-THRESH_value  = 13
-scf_algorithm = 'diis'
-calc	      = [506, 506+32]
-#calc	      = ['2306', '2307', '2308', '2309', '2310', '2311', '2312', '2313', '2314', '2315', '2316', '2317', '2318', '2319', '2320', '2321', '2322', '2323', '2324', '2325', '2326', '2327', '2328', '2329', '2330', '2331', '2332', '2333', '2334', '2335', '2336', '2337', '2434', '2435', '2436', '2437', '2438', '2439', '2440', '2441', '2442', '2443', '2444', '2445', '2446', '2447', '2448', '2449', '2450', '2451', '2452', '2453', '2454', '2455', '2456', '2457', '2458', '2459', '2460', '2461', '2462', '2463', '2464', '2465', '2850', '2851', '2852', '2853', '2854', '2855', '2856', '2857', '2858', '2859', '2860', '2861', '2862', '2863', '2864', '2865', '2866', '2867', '2868', '2869', '2870', '2871', '2872', '2873', '2874', '2875', '2876', '2877', '2878', '2879', '2880', '2881', '3270', '3271', '3272', '3273', '3274', '3275', '3276', '3277', '3278', '3279', '3280', '3281', '3282', '3283', '3284', '3285', '3286', '3287', '3288', '3289', '3290', '3291', '3292', '3293', '3294', '3295', '3296', '3297', '3298', '3299', '3300', '3301', '4330', '4331', '4332', '4333', '4334', '4335', '4336', '4337', '4338', '4339', '4340', '4341', '4342', '4343', '4344', '4345', '4346', '4347', '4348', '4349', '4350', '4351', '4352', '4353', '4354', '4355', '4356', '4357', '4358', '4359', '4360', '4361', '4394', '4395', '4396', '4397', '4398', '4399', '4400', '4401', '4402', '4403', '4404', '4405', '4406', '4407', '4408', '4409', '4410', '4411', '4412', '4413', '4414', '4415', '4416', '4417', '4418', '4419', '4420', '4421', '4422', '4423', '4424', '4425', '4842', '4843', '4844', '4845', '4846', '4847', '4848', '4849', '4850', '4851', '4852', '4853', '4854', '4855', '4856', '4857', '4858', '4859', '4860', '4861', '4862', '4863', '4864', '4865', '4866', '4867', '4868', '4869', '4870', '4871', '4872', '4873', '5134', '5135', '5136', '5137', '5138', '5139', '5140', '5141', '5142', '5143', '5144', '5145', '5146', '5147', '5148', '5149', '5150', '5151', '5152', '5153', '5154', '5155', '5156', '5157', '5158', '5159', '5160', '5161', '5162', '5163', '5164', '5165']
+THRESH_value  = ''
+scf_algorithm = 'diis_gdm'
+calc	      = [1309]
 
 print('Directory name', dir_name)
 
@@ -51,8 +50,11 @@ else:
 'Load data'
 with open(data_dir+"/data.json", "r") as read_file:
     data = json.load(read_file)
-with open(data_dir+"/data_output.json", "r") as read_file:
-    data_output = json.load(read_file)
+try:
+	with open(data_dir+"/data_output.json", "r") as read_file:
+		data_output = json.load(read_file)
+except:
+	pass
 
 def rem_section():
 	'writes details of rm section'
@@ -209,18 +211,35 @@ for calc in calculations:
 			os.system('cp '+struc_dir+'/'+calc+'.traj input.traj')
 
 			if exchange == 'omegab97x-d':	
-				'copy GGA results to hGGA if available'	
 				try:
+					'copy GGA results to hGGA if available'	
+					wd = os.getcwd()
+					os.chdir(calc_dir+'/'+calc+'-opt-B97-D3-def2-svp-ref-'+data[calc+'.traj']['reference'])
+					os.system('cp '+scripts_dir+'/qchem-to-ase-all-atoms.py .')
+					os.system('python qchem-to-ase-all-atoms.py')
+					os.system('rm -r traj-full-atoms/')
+					os.chdir(wd)
 					os.system('cp '+calc_dir+'/'+calc+'-opt-B97-D3-def2-svp-ref-'+data[calc+'.traj']['reference']+'/full-atoms.xyz input.xyz')
 					atoms = io.read('input.xyz')
+					print('optimized GGA calc exists')
 				except:
+					print('No optimized GGA calc')
 					atoms = io.read('input.traj')
 					atoms.write('input.xyz')
-				
+			else:	
+				atoms = io.read('input.traj')
+				atoms.write('input.xyz')
+
 			n_atoms = len(atoms)
 			clean_input('input.xyz')
 			
 		elif basis == 'def2-tzvpd':
+			wd = os.getcwd()
+			os.chdir(calc_dir+'/'+calc+'-opt-'+exchange+'-def2-svp-ref-'+data[calc+'.traj']['reference'])
+			os.system('cp '+scripts_dir+'/qchem-to-ase-all-atoms.py .')
+			os.system('python qchem-to-ase-all-atoms.py')
+			os.system('rm -r traj-full-atoms/')
+			os.chdir(wd)
 			os.system('cp '+calc_dir+'/'+calc+'-opt-'+exchange+'-def2-svp-ref-'+data[calc+'.traj']['reference']+'/full-atoms.xyz input.xyz')
 			clean_input('input.xyz')
 
@@ -262,4 +281,4 @@ for calc in calculations:
 		with open("dir_data.json", "w") as write_file:
 			json.dump(data[calc+'.traj'], write_file, indent=4)
 
-
+	
