@@ -2,10 +2,12 @@ import json, datetime, sys
 from matplotlib import pyplot as plt
 import numpy as np
 
+'Inputs'
 try:
 	ads = sys.argv[1]
 except:
 	print('Error! missing adsorbate name')
+	exit()
 
 'load full information on the status of the calculations'
 with open('info_status-'+ads+'.json','r') as read:
@@ -31,6 +33,7 @@ completed, failed  = 0,0
 hGGA_opt , hGGA_sp, empty = [],[],[]
 single_Al = ['1.traj','31.traj','61.traj','93.traj','125.traj','155.traj','185.traj','216.traj','248.traj']	#have a single Al in structure
 total['Pd1'], total['H'] = 32,16
+d,GGA_opt,GGA_sp,hGGA_opt,hGGA_sp, ref = [],[],[],[],[],[]
 
 'aggreagate data'
 for item in traj:
@@ -113,8 +116,8 @@ if ads == 'Pd1':
 	print('hGGA opt:', hGGA_opt)
 	print('hGGA sp:', hGGA_sp)
 print('\n*SUMMARY*')
-print('Calculations started on {} out of 93 structures'.format(total['traj']))
 print('Completed calculations on {} structures'.format(9+completed))
+#print('Calculations started on {} out of 93 structures'.format(total['traj']))
 #print('GGA opt completed calculations: {}%'.format(round(total['GGA']['opt']/(GGA_cumulative)*100,1)))
 #print('GGA sp completed calculations: {}%'.format(round(total['GGA']['sp']/(GGA_cumulative)*100,1)))
 #print('hGGA opt completed calculations: {}%'.format(round(total['hGGA']['opt']/hGGA_cumulative*100,1)))
@@ -131,10 +134,8 @@ with open("summary_by_date-"+ads+".json", "w") as write_file:
     json.dump(summary, write_file, indent=4)
 
 'plot data'
-d,GGA_opt,GGA_sp,hGGA_opt,hGGA_sp, ref = [],[],[],[],[],[]
 
 ax = plt.figure(1)
-
 for date in summary:
 	ref.append(int(date))	#to references all data to first day as 0
 	d.append(int(date) - int(ref[0]))
@@ -148,20 +149,28 @@ for date in summary:
 		hGGA_sp.append(summary[date]['hGGA']['sp']/hGGA_cumulative_sp*100)
 
 daily_change = []
-for index,item in enumerate(GGA_opt):
-	if index not in [0,1]:
-		daily_change.append(round(GGA_opt[index] - GGA_opt[index-1],1))
+if ads == 'Pd1':
+	for index,item in enumerate(GGA_opt):
+		if index not in [0,1]:
+			daily_change.append(round(GGA_opt[index] - GGA_opt[index-1],1))
+elif ads == 'H':	
+	for index,item in enumerate(hGGA_opt):
+		if index not in [0,1]:
+			daily_change.append(round(hGGA_opt[index] - hGGA_opt[index-1],1))
+
+
 try:
 	Average = sum(daily_change)/len(daily_change)
 	print('Average:      ',round(sum(daily_change)/len(daily_change),2))
 except:
+	print(daily_change)
+	print('Error in average')
 	pass
 
 #print('Including failed calc:', round((GGA_opt[-1]*GGA_cumulative/100+failed)/GGA_cumulative*100,1))
 if ads == 'Pd1':
 	print('% of failed calc:', round(failed/GGA_cumulative*100,1))
 
-ax = plt.figure(1)
 GGA_opt = np.array(GGA_opt)
 if ads == 'Pd1':
 	plt.plot(d, GGA_opt,'bo-',markersize=6,linewidth=3.0,label='GGA opt')
@@ -174,12 +183,13 @@ plt.ylabel('% of Completed Calculations', fontsize=14)
 plt.tick_params(labelsize=13)
 plt.legend()
 
-ax = plt.figure(2)
 try:
+	ax = plt.figure(2)
 	plt.plot([d[2],d[-1]], [Average,Average],'k--')
+	plt.bar(d[2:], daily_change,align='center', alpha=0.5)
+	plt.xlabel('Time (days)', fontsize=16)
+	plt.ylabel('Daily Change', fontsize=16)
 except:
 	pass
-plt.bar(d[2:], daily_change,align='center', alpha=0.5)
-plt.xlabel('Time (days)', fontsize=16)
-plt.ylabel('Daily Change', fontsize=16)
+
 plt.show()
