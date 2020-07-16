@@ -5,12 +5,16 @@ from copy import deepcopy
 'Gives a summary of the status of calculations'
 
 'Inputs'
-#dir_name     = 'BEA/Pd1/calculations/B97-D3-large-qm/B97-D3-large-qm/'
-dir_name = 'BEA/Pd1'
+try:
+	zeolite  = sys.argv[1]
+	ads      = sys.argv[2]
+except:
+	print('python status.py [Zeolite] [ads]')
+	exit()
 
 'Directroies'
-calc_dir    = '/home/aljama/'+dir_name+'/calculations/'	#directory where caluculatiosn are saved
-data_dir    = '/home/aljama/'+dir_name+'/data/'		#directory where data are saved
+calc_dir    = '/home/aljama/'+zeolite+'/'+ads+'/calculations/'	#directory where caluculatiosn are saved
+data_dir    = '/home/aljama/'+zeolite+'/'+ads+'/data/'		#directory where data are saved
 cwd = os.getcwd()
 
 data = {}
@@ -116,13 +120,14 @@ def frozen_atoms():
 folders = folders_list(calc_dir)	#folders in calculations/directory
 running_jobs   = running_jobs_list()	#list of the running jobs
 restart, failed, not_sure, frozen, Running, completed, terminate, terminate_id = [],[],[],[],[],[],[],''
-scf_converge = []
+scf_converge, not_started = [],[]
 
 for item in folders:
 	if 'def' in item:
 		if os.path.exists(calc_dir+'/'+item+'/opt.out') == False:
 			'Did not Start'
 			#print(item, '\t\t', 'Did not start') 
+			not_started.append(item)
 			data[item] = 'Did not start'
 		elif comp(item) == True:
 			'completed calculations'
@@ -175,11 +180,11 @@ for item in folders:
 					data[item] = 'Failed'
 					not_sure.append(item)
 
-print('*******\nCalculations require restart:', len(restart), restart)
-print('*******\nFrozen!:', len(frozen), frozen)
-print('*******\nNot sure!:', len(not_sure), not_sure)
-print('*******\nScf failed to converge!:', len(scf_converge), scf_converge)
-print('*******\nTerminate id:', terminate_id)
+print('******* Calculations require restart:', len(restart), restart)
+print('******* Frozen!:', len(frozen))
+print('******* Not started!:', not_started)
+print('******* Scf failed to converge!:', len(scf_converge))
+print('******* Terminate id:', terminate_id)
 #print('*******\nMust terminate:', len(terminate), terminate)
 #print('*******\nRunning:', len(Running), Running)
 #print('Completed:', len(completed), completed)
@@ -234,14 +239,6 @@ for t in traj_copy:
 				traj[t][theory][calc_type]['failed']  += 1
 	
 os.chdir(cwd)
-with open("info_status.json", "w") as write_file:
+with open("info_status-"+ads+".json", "w") as write_file:
     json.dump(traj, write_file, indent=4)
 
-'''
-'print information'
-for item in traj:
-	print('\n** ', item)
-	for theory in traj[item]:
-		for TYPE in traj[item][theory]:		
-			print(theory, TYPE, traj[item][theory][TYPE])
-'''	
