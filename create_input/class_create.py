@@ -9,7 +9,7 @@ Create Q-Chem opt.in file
 
 class helpers():
 
-	def __init__(self, exchange, basis, job_type, multiplicity, scf_algorithm, max_scf_cycles, wd, qm_atoms, traj, zeolite, cation, geom_opt_max_cycles, input_atoms, file_name, create_input_dir):
+	def __init__(self, exchange, basis, job_type, multiplicity, scf_algorithm, max_scf_cycles, wd, THRESH, qm_atoms, traj, zeolite, cation, geom_opt_max_cycles, input_atoms, file_name, create_input_dir):
 
 		'Main Inputs'
 		self.exchange         = exchange
@@ -17,11 +17,11 @@ class helpers():
 		self.job_type         = job_type
 		self.multiplicity     = multiplicity
 		self.scf_algorithm    = scf_algorithm
-		self.max_scf_cycles   = str(max_scf_cycles)
 		self.qm_atoms	      = qm_atoms
 
 		'optional'
 		self.THRESH              = THRESH
+		self.max_scf_cycles      = str(max_scf_cycles)
 		self.wd        	         = wd
 		self.zeolite	         = zeolite
 		self.cation              = cation
@@ -32,23 +32,23 @@ class helpers():
 		self.create_input_dir    = create_input_dir
 
 		'defaults'
-		if self.create_input_dir == '':
+		if self.create_input_dir == None:
 			self.create_input_dir = self.wd+'/'+self.zeolite+'/original/create_input'
-		if self.file_name == '':
+		if self.file_name == None:
 			self.file_name	      = 'opt.in'
 
 		'qm atoms'
-		if self.qm_atoms == '':
+		if self.qm_atoms == None:
 			'assumes qm atoms info in the json file'
 			with open(self.wd+'/'+self.zeolite+'/'+self.cation+'/data/data.json', 'r') as read_file:
 				data = json.load(read_file)
 			self.qm_atoms    = data[self.traj+'.traj']['qm_region']
 
 		'original structure'
-		if self.atoms == '':
-			self.atoms = io.read(self.wd+'/'+self.zeolite+'/original/structures_saved/'+self.traj+'.traj')
-		else:
+		if self.atoms == 'input.xyz':
 			self.atoms = io.read(self.atoms)
+		else:
+			self.atoms = io.read(self.wd+'/'+self.zeolite+'/original/structures_saved/'+self.traj+'.traj')
 
 	def fixed_atoms(self):
 		'fixed atoms'
@@ -85,7 +85,7 @@ class helpers():
 		g.write('mem_static   	450\n')
 		g.write('geom_opt_dmax   80\n')
 		g.write('pop_mulliken false\n')
-		if self.THRESH != '':
+		if self.THRESH != None:
 			g.write('THRESH\t'+str(self.THRESH)+'\n')
 		g.write('$end\n')
 		g.close()
@@ -147,12 +147,12 @@ class helpers():
 			os.system('rm tmp')
 			f.write('$end')
 
-def qchem_in(exchange, basis, multiplicity, job_type, wd='', THRESH='', qm_atoms ='', traj='', input_atoms='', zeolite='', geom_opt_max_cycles='', file_name='',create_input_dir):
+def qchem_in(exchange, basis, job_type, multiplicity, scf_algorithm, cation=None, max_scf_cycles='150',  wd=None, THRESH=None, qm_atoms=None, traj=None, input_atoms=None, zeolite=None, geom_opt_max_cycles=None, file_name='opt.in',create_input_dir=None):
 	
-	if wd == '':
+	if wd == None:
 		wd = os.getcwd()
 
-	k = helpers(exchange, basis, job_type, multiplicity, scf_algorithm, max_scf_cycles, wd, qm_atoms, traj, zeolite, cation, geom_opt_max_cycles, input_atoms)
+	k = helpers(exchange, basis, job_type, multiplicity, scf_algorithm, max_scf_cycles, wd, THRESH, qm_atoms, traj, zeolite, cation, geom_opt_max_cycles, input_atoms, file_name, create_input_dir)
 
 	'writing opt.in'
 	f = open('opt.in','w')
@@ -175,5 +175,6 @@ traj	       = '1'
 zeolite        = 'BEA'		#zeolite name
 cation         = 'Pd1'
 
-qchem_in(exchange, basis, multiplicity, job_type, wd=wd, THRESH=THRESH, zeolite=zeolite, traj=traj)
+#qchem_in(exchange, basis, job_type, multiplicity, scf_algorithm, cation=cation, max_scf_cycles=max_scf_cycles,  wd=wd, THRESH=THRESH, qm_atoms ='', traj=traj, input_atoms='', zeolite=zeolite, geom_opt_max_cycles='', file_name='opt.in',create_input_dir='')
 
+qchem_in(exchange, basis, job_type, multiplicity, scf_algorithm, zeolite=zeolite, cation=cation, traj=traj, wd=wd, max_scf_cycles='500')
