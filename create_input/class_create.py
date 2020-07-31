@@ -2,53 +2,53 @@
 
 import os, json
 from ase import io
-
+from functions import *
+from connectivity import connect
 '''
 Create Q-Chem opt.in file
 '''
 
-class helpers():
+class input_text():
 
 	def __init__(self, exchange, basis, job_type, multiplicity, scf_algorithm, max_scf_cycles, wd, THRESH, qm_atoms, traj, zeolite, cation, geom_opt_max_cycles, input_atoms, file_name, create_input_dir):
 
 		'Main Inputs'
-		self.exchange         = exchange
-		self.basis	      = basis
-		self.job_type         = job_type
-		self.multiplicity     = multiplicity
-		self.scf_algorithm    = scf_algorithm
-		self.qm_atoms	      = qm_atoms
+		self.exchange         = exchange		#exchange function
+		self.basis	      = basis			#basis set
+		self.job_type         = job_type		#job type (opt, sp, freq, etc.)
+		self.multiplicity     = multiplicity		#multiplicity
+		self.scf_algorithm    = scf_algorithm		#diis or diis_gdm
+		self.qm_atoms	      = qm_atoms		#atoms in the qm region
 
 		'optional'
-		self.THRESH              = THRESH
-		self.max_scf_cycles      = str(max_scf_cycles)
-		self.wd        	         = wd
-		self.zeolite	         = zeolite
-		self.cation              = cation
-		self.traj	         = traj
-		self.geom_opt_max_cycles = geom_opt_max_cycles
-		self.file_name		 = file_name
-		self.atoms 		 = input_atoms
-		self.create_input_dir    = create_input_dir
+		self.THRESH              = THRESH		#THRESH value (12-15)
+		self.max_scf_cycles      = str(max_scf_cycles)	#max scf cycles (150-300)
+		self.wd        	         = wd			#working directory
+		self.zeolite	         = zeolite		#type of zeolite material
+		self.cation              = cation		#name of the cation
+		self.traj	         = traj			#item number of traj file in database
+		self.geom_opt_max_cycles = geom_opt_max_cycles	#150-300
+		self.file_name		 = file_name		#name of the file (default is opt.in)
+		self.input_atoms 	 = input_atoms		#name of .xyz file containing reactant
+		self.create_input_dir    = create_input_dir	#directory where .txt files are present
 
 		'defaults'
 		if self.create_input_dir == None:
+			'based on default arragnement of the code'
 			self.create_input_dir = self.wd+'/'+self.zeolite+'/original/create_input'
-		if self.file_name == None:
-			self.file_name	      = 'opt.in'
 
 		'qm atoms'
 		if self.qm_atoms == None:
-			'assumes qm atoms info in the json file'
+			'assumes qm atoms info in the json file based on default arrangement of the code'
 			with open(self.wd+'/'+self.zeolite+'/'+self.cation+'/data/data.json', 'r') as read_file:
 				data = json.load(read_file)
 			self.qm_atoms    = data[self.traj+'.traj']['qm_region']
 
 		'original structure'
-		if self.atoms == 'input.xyz':
-			self.atoms = io.read(self.atoms)
-		else:
+		if self.input_atoms == None:
 			self.atoms = io.read(self.wd+'/'+self.zeolite+'/original/structures_saved/'+self.traj+'.traj')
+		else:
+			self.atoms = io.read(self.atoms)
 
 	def fixed_atoms(self):
 		'fixed atoms'
@@ -135,24 +135,56 @@ class helpers():
 		g.write('endfixed\n$end\n')
 
 	def molecules_section(self):
-		'writes details of the #molecule section'
 		g = open(self.file_name,'a')
-		g.write('\n$molecule\n0  '+str(self.multiplicity)+'\n')
+		'writes details of the #molecule section'
+		g.write('$molecule\n0  '+str(self.multiplicity)+'\n')
+		#os.system('cp '+self.create_input_dir+'/connectivity_NL.py .')
+		#os.system('python connectivity_NL.py input.xyz '+str(self.qm_atoms)+' '+self.zeolite+' > tmp')
+		if self.input_atoms == None:
+			connect(self.traj+'.traj', self.qm_atoms, zeolite=self.zeolite)
+		else:
+			connect(self.input_atoms, self.qm_atoms, zeolite=self.zeolite)
+		
 		if os.path.getsize('tmp') == 0:
 			print('Connectivity_NL results in an empty $mol section')
 			exit()
 		else:
-			f = open('tmp', 'r')
-			f.write(g.read())
+			r = open('tmp', 'r')
+			g.write(r.read())
 			os.system('rm tmp')
-			f.write('$end')
+			g.write('$end')
+			r.close()
 
-def qchem_in(exchange, basis, job_type, multiplicity, scf_algorithm, cation=None, max_scf_cycles='150',  wd=None, THRESH=None, qm_atoms=None, traj=None, input_atoms=None, zeolite=None, geom_opt_max_cycles=None, file_name='opt.in',create_input_dir=None):
+def qchem_input(exchange, basis, job_type, multiplicity, scf_algorithm, cation=None, max_scf_cycles='150',  wd=None, THRESH=None, qm_atoms=None, traj=None, input_atoms=None, zeolite=None, geom_opt_max_cycles=None, file_name='opt.in',create_input_dir=None):
+
+	'''
+	creats input file for qchem calculations
+	
+	Required inputs:
+	exchange		#exchange function
+	basis			#basis set
+	job_type		#job type (opt, sp, freq, etc.)
+	multiplicity		#multiplicity
+	scf_algorithm		#diis or diis_gdm
+	qm_atoms		#list of atoms in the qm region
+
+	Optional inputs:
+	THRESH			#THRESH value (8-15)
+	str(max_scf_cycles)	#max scf cycles (150-300)
+	wd			#working directory
+	zeolite			#type of zeolite material
+	cation			#name of the cation
+	traj			#item number of in the json database
+	geom_opt_max_cycles	#150-300
+	file_name		#name of the file (default is opt.in)
+	input_atoms		#name of .xyz file containing reactant
+	create_input_dir	#directory where .txt files are present (rem.txt etc.)
+	'''
 	
 	if wd == None:
 		wd = os.getcwd()
 
-	k = helpers(exchange, basis, job_type, multiplicity, scf_algorithm, max_scf_cycles, wd, THRESH, qm_atoms, traj, zeolite, cation, geom_opt_max_cycles, input_atoms, file_name, create_input_dir)
+	k = input_text(exchange, basis, job_type, multiplicity, scf_algorithm, max_scf_cycles, wd, THRESH, qm_atoms, traj, zeolite, cation, geom_opt_max_cycles, input_atoms, file_name, create_input_dir)
 
 	'writing opt.in'
 	f = open('opt.in','w')
@@ -161,8 +193,10 @@ def qchem_in(exchange, basis, job_type, multiplicity, scf_algorithm, cation=None
 	k.comments_section()
 	k.ff_parameters_section()
 	k.opt_section()
+	k.molecules_section()
 	f.close()
 
+'Test it here .. '
 exchange       = 'omegab97x-d'	#'omegab97x-d' or 'B97-D3'
 basis          = 'def2-sv(p)'	#'def2-sv(p) or def2-tzvpd'
 multiplicity   = 2		#multiplicity of the structure
@@ -174,7 +208,5 @@ wd	       = '/home/aljama/'
 traj	       = '1'
 zeolite        = 'BEA'		#zeolite name
 cation         = 'Pd1'
-
-#qchem_in(exchange, basis, job_type, multiplicity, scf_algorithm, cation=cation, max_scf_cycles=max_scf_cycles,  wd=wd, THRESH=THRESH, qm_atoms ='', traj=traj, input_atoms='', zeolite=zeolite, geom_opt_max_cycles='', file_name='opt.in',create_input_dir='')
-
-qchem_in(exchange, basis, job_type, multiplicity, scf_algorithm, zeolite=zeolite, cation=cation, traj=traj, wd=wd, max_scf_cycles='500')
+create_input_dir =  '/home/aljama/BEA/original/create_input'
+qchem_input(exchange, basis, job_type, multiplicity, scf_algorithm, zeolite=zeolite, cation=cation, traj=traj, wd=wd, max_scf_cycles='500', create_input_dir=create_input_dir)
