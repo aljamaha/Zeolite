@@ -18,6 +18,8 @@ exchange	    = 'omega'
 calc_type	    = 'sp' 		#opt or sp
 #traj		    = ['34.traj', '36.traj', '39.traj', '41.traj', '42.traj', '63.traj', '64.traj', '65.traj', '67.traj', '69.traj', '71.traj', '78.traj', '2.traj', '84.traj', '87.traj', '3.traj', '95.traj', '98.traj', '100.traj', '101.traj', '4.traj', '5.traj', '120.traj', '6.traj', '127.traj', '130.traj', '131.traj', '132.traj', '134.traj', '7.traj', '8.traj', '148.traj', '158.traj', '162.traj', '163.traj', '165.traj', '10.traj', '167.traj', '11.traj', '186.traj', '195.traj', '200.traj', '204.traj', '206.traj', '211.traj', '212.traj', '234.traj']	#save the top 5 candidates in those traj files
 
+same_side = ['101.traj']
+
 'Directory names'
 data_dir    = '/home/aljama/'+dir_Pd+'/data/'			#dir where json data are saved
 calc_dir    = '/home/aljama/'+dir_Pd+'/calculations/'		#dir where calculations are done
@@ -139,7 +141,7 @@ for ref in references:
 	'''
 
 E,E_label,ref_label, first_item = [],[],{}, True
-coloring,shade = {},{}
+coloring,shade,edge = {},{},{}
 '''Plot rxn energy [bar plot]'''
 for entry in minimum:
 	if minimum[entry] != '':
@@ -161,15 +163,19 @@ for entry in minimum:
 				ref_label[minimum[entry]] = entry
 				if data_original[entry]['Al'] == 1:
 					coloring[entry] = 'y'
+					edge[entry]     = 'y'
 				elif data_original[entry]['Al-Al MR'] == [5,5]:
 					coloring[entry] = 'r'
+					edge[entry]     = 'r'
 					#print(data_original[entry]['Al-Al MR'])	
 				elif data_original[entry]['Al-Al MR'] == [6,6]:
 					coloring[entry] = 'b'
+					edge[entry]     = 'b'
 					#print(data_original[entry]['Al-Al MR'])
 				elif data_original[entry]['Al-Al MR'] == [4,4]:
 					#print(data_original[entry]['Al-Al MR'])
 					coloring[entry] = 'g'
+					edge[entry]     = 'g'
 				else:
 					coloring[entry] = 'c'
 				if data_original[entry]['N'] == 'NNN':
@@ -185,15 +191,17 @@ new_x, new_E, x_pts = sort(E_label, E)
 #T_atom   = [1119, 1124, 1129, 1134, 1139, 1144, 1149, 1155, 1158]
 #for T in T_atom:
 for index, item in enumerate(new_E):
-		#if ref_label[new_x[index]] in data_T[str(T)]:
-		#	plt.bar(x_pts[index], new_E[index],color=coloring[ref_label[new_x[index]]], edgecolor='k', linewidth=4,align='center', alpha=1)
-		#else:
-		plt.bar(x_pts[index], new_E[index],color=coloring[ref_label[new_x[index]]], hatch=shade[ref_label[new_x[index]]],align='center', alpha=0.9)
-
-		#plt.bar(x_pts[index], new_E[index],color='b', align='center', alpha=1)
-		if plt_ref_label == True:
-			plt.text(x_pts[index], min(new_E)-0.1, ref_label[new_x[index]], color='k',rotation = 90, fontsize=12)	
-			#print(ref_label[new_x[index]])
+	ref = ref_label[new_x[index]]
+	#if ref_label[new_x[index]] in data_T[str(T)]:
+	#	plt.bar(x_pts[index], new_E[index],color=coloring[ref_label[new_x[index]]], edgecolor='k', linewidth=4,align='center', alpha=1)
+	#else:
+	#if coloring[ref_label[new_x[index]]] == 'r':
+	if coloring[ref] == 'c' and ref in same_side:
+			plt.bar(x_pts[index], new_E[index],color=coloring[ref], edgecolor='k', linewidth=4,align='center', alpha=1)
+	else:
+		plt.bar(x_pts[index], new_E[index],color=coloring[ref], hatch=shade[ref],align='center', alpha=0.9)
+	if plt_ref_label == True:
+		plt.text(x_pts[index], min(new_E)-0.1, ref,  color='k',rotation = 90, fontsize=12)	
 
 plt.ylim([-3.1, -2.5])
 plt.xticks(x_pts, new_x, rotation = 90)
@@ -205,7 +213,10 @@ plt.clf()
 for index, item in enumerate(new_E):
 	ref = ref_label[new_x[index]]
 	try:
-		plt.plot(Al_distance[ref], new_E[index],'ko')
+		if shade[ref] == '**':
+			plt.plot(Al_distance[ref], new_E[index],coloring[ref]+'^')
+		else:
+			plt.plot(Al_distance[ref], new_E[index],coloring[ref]+'o')
 	except:
 		pass
 
