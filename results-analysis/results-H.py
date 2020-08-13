@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from ase import atoms, io
 from copy import deepcopy
 import numpy as np
+from functions import calc_index
 
 '''
 Results Analysis (energy and O-O distances)
@@ -10,13 +11,15 @@ add a description here
 '''
 
 'Inputs'
+calc_type	    = 'opt'
+exchangw	    = 'omegab97x-d'
 plotting    	    = True		#if True, plot results for each reference structure
 plot_individual	    = True		#show individual plots for each reference (as a function of O-O distance)
 sorted_plot	    = False		#if True, bar plots of energies is sorted from lowest to highest
 not_sorted	    = True		#make a plot of all data aggregated (O-distance vs. Energy)
 plotting_overall    = True		#if True, make an overall plot of all results
-label_pts	    = False		#add labels to pts in scatter plt
-Al_shading	    = False		#add vertical line referring to Al-Al distance
+label_pts	    = True		#add labels to pts in scatter plt
+Al_shading	    = True		#add vertical line referring to Al-Al distance
 data_dir    = '/home/aljama/BEA/H/data/'			#dir where json data are saved
 calc_dir    = '/home/aljama/BEA/H/calculations/'		#dir where calculations are done
 #results_dir = '/home/aljama/CHA-full-MR/results-analysis/' 	#dire where results are to be saved
@@ -29,12 +32,11 @@ with open(data_dir+"data_output.json", "r") as read_file:
 with open(data_dir+"data.json", "r") as read_file:
     data_original = json.load(read_file)
 
+'''
 def calc_index(index):
-	'''
 	finds the entry in data_output and matches it to the item in data_original ['index']
 	Input : index in data_original
 	Output: entry in data_output
-	'''
 	output = 'none' #make default is none, uncless calculation is available
 
 	for item in data_output:
@@ -43,6 +45,7 @@ def calc_index(index):
 			if stat == True:
 				output = item
 	return output
+'''
 
 def Al_Al(atoms):
 	'''
@@ -179,7 +182,7 @@ def rxn_energy(E, zeolite_H):
 	calculates rxn energy based on the following rxn:
 	Pd + [2H(+) z(2-)] --> Pd(2+) Z(2-) + H2O - 1/2 O2
 	'''
-	Pd  = -1496.0850202371
+	Pd  = -127.913481461
 	H2O = -76.439413334
 	O2  = -150.2765115625
 
@@ -218,31 +221,35 @@ for ref in references:
 	for item in references[ref]:
 		'each item under reference'
 		index = item[0:-5] #remves .traj from the name
-		data_output_entry = calc_index(index) #check corresponding name in data_output
+		data_output_entry = calc_index(index, data_output, 'omega',calc_type) #check corresponding name in data_output
 		if data_output_entry != 'none':
 			'check calcuation dir is available'
-			if data_output[data_output_entry]['status'] == 'complete':
-				'check calc is completed, then copy traj files to new folder'
-				#os.system('cp '+calc_dir+'/'+data_output_entry+'/qm-initial.traj '+item[0:-5]+'.traj')
-				x_pos.append(int(index))	#x-asis position
-				if first_item == True:
-					E_ref = data_output[data_output_entry]['energy']
-				E.append( (data_output[data_output_entry]['energy']- E_ref)*27.2114 ) #convert from Hartree to e. values of energies for y-axis
-				E_all.append( (data_output[data_output_entry]['energy']- E_ref)*27.2114 ) 
-				first_item = False
+			try:
+				if data_output[data_output_entry]['status'] == 'complete':
+					'check calc is completed, then copy traj files to new folder'
+					#os.system('cp '+calc_dir+'/'+data_output_entry+'/qm-initial.traj '+item[0:-5]+'.traj')
+					x_pos.append(int(index))	#x-asis position
+					if first_item == True:
+						E_ref = data_output[data_output_entry]['energy']
+					E.append( (data_output[data_output_entry]['energy']- E_ref)*27.2114 ) #convert from Hartree to e. values of energies for y-axis
+					E_all.append( (data_output[data_output_entry]['energy']- E_ref)*27.2114 ) 
+					first_item = False
 
-				'Al-Al distance'
-				atoms = io.read(calc_dir+data_output_entry+'/qm-initial.traj')
-				Al_distance, n_Al = Al_Al(atoms)
-				data_output[data_output_entry]['Al-Al distance'] = round(Al_distance,3)
+					'Al-Al distance'
+					atoms = io.read(calc_dir+data_output_entry+'/qm-initial.traj')
+					Al_distance, n_Al = Al_Al(atoms)
+					#data_output[data_output_entry]['Al-Al distance'] = round(Al_distance,3)
 
-				'O-O distance'
-				O_O_distance = O_O(atoms, n_Al)
-				data_output[data_output_entry]['O-O distance'] = round(O_O_distance,3)
-				O_d.append( round(O_O_distance,3) )
-				O_d_all.append( round(O_O_distance,3) )
-				
-				label.append(index)
+					'O-O distance'
+					O_O_distance = O_O(atoms, n_Al)
+					#data_output[data_output_entry]['O-O distance'] = round(O_O_distance,3)
+					O_d.append( round(O_O_distance,3) )
+					O_d_all.append( round(O_O_distance,3) )
+			
+					label.append(index)
+			
+			except:
+				pass
 
 	if len(E) > 0:
 		if plotting == True:	
@@ -258,8 +265,11 @@ for ref in references:
 				'bar plot (not sorted)'
 				plt.bar(x_pos, E, align='center', alpha=1)
 				plt.xticks(x_pos, x_pos)
-				plt.ylabel('Energy (eV)')
-				plt.show()
+				new_x, new_E, x_pts = sort(x_pos, E)
+				print(ref, len(new_x),  new_x[0:5])
+				if plot_individual == True:
+					plt.ylabel('Energy (eV)')
+					plt.show()
 			if plotting_overall == True:
 				try:
 					tmp, tmp_ind = np.min(E), E.index(min(E))
@@ -274,9 +284,11 @@ for ref in references:
 						plt.plot([Al_distance+0.8,Al_distance+0.8],[-2,2],'k--')
 					if label_pts == True:
 						for i, lab in enumerate(label):
-							plt.text(O_d[i], E[i], lab)
+							plt.text(O_d[i], E[i]-np.min(E), lab)
 					if plot_individual == True:
+						plt.ylim([-0.2,1])
 						plt.show()
+
 				except:
 					pass
 
