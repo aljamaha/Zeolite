@@ -17,15 +17,15 @@ Includes options for H adsorption, Pd+1, NH3, and Pd+2
 
 'Inputs'
 zeolite_original = io.read('../original_structures/T-810.xyz')	#Zeolite structure
-dir_name = 'BEA/original'
+dir_name = 'BEA/Pd2'
 Pd1 	 = False  #generate structures of Pd+1 (if True)
 H_Z	 = False	#generate structures of zeolites with H (if True)
-Pd2	 = False #generates sturcture of zeolites with Pd+2 (if True)
+Pd2	 = True #generates sturcture of zeolites with Pd+2 (if True)
 T_atom   = [1119, 1124, 1129, 1134, 1139, 1144, 1149, 1155, 1158]
 T_atom   = [1119]
 H_atoms  = 274	#number of H atoms in original structure to account for terminal O
 cutoff   = 0	#adds O atoms < cutoff distance to qm region
-n_MR_max = 7	#maximum number of MR of interest	
+n_MR_max = 6	#maximum number of MR of interest	
 MR_types = {}
 MR_types['1Al in 1Al']  = [4,5,6]	#types of MR included in a single Al sturcuter
 MR_types['1Al in 2Al']  = [4,5]		#types of MR included in a 2Al pair
@@ -73,10 +73,10 @@ for Al in T_atom:
 		index, data = print_structure(zeolite_copy, '', index, 'NN', str(index+1)+'.traj',struc_dir, data, H_atoms, Al)
 
 	'2 Al [NNN]'
-	#for item in neighbors['Si']['NNN']:
-	#	zeolite_copy = deepcopy(zeolite)
-	#	zeolite_copy[item].symbol = 'Al'
-	#	index, data = print_structure(zeolite_copy, '', index, 'NNN', str(index+1)+'.traj',struc_dir, data, H_atoms, Al)
+	for item in neighbors['Si']['NNN']:
+		zeolite_copy = deepcopy(zeolite)
+		zeolite_copy[item].symbol = 'Al'
+		index, data = print_structure(zeolite_copy, '', index, 'NNN', str(index+1)+'.traj',struc_dir, data, H_atoms, Al)
 
 'removes structures with Al-Al as neighbors'
 data = Al_Al_N(struc_dir, data, N_list)
@@ -110,7 +110,7 @@ if Pd2 == True:
 	print('creating Pd+2 structures ...')
 	index, data = Pd_two(data, calculations, struc_dir, index, total_original_atoms, N_list, H_atoms)	
 	for item in data:
-		data = qm_region(data, item, struc_dir, N_list, total_original_atoms, MR_types)
+		data = qm_region(data, item, struc_dir, N_list, total_original_atoms,  cutoff, n_MR_max, MR_types, turn_cutoff='on')
 
 '''Pd+1'''
 if Pd1 == True:
@@ -120,5 +120,7 @@ if Pd1 == True:
 		data = qm_region(data, item, struc_dir, N_list, total_original_atoms,  cutoff, n_MR_max, MR_types, turn_cutoff='on')
 
 '''save data'''
+if os.path.exists(data_dir+'/data.json') == False:
+	os.system('mkdir -p '+data_dir)
 with open(data_dir+"/data.json", "w") as write_file:
     json.dump(data, write_file, indent=4)
