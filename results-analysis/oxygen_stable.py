@@ -7,17 +7,20 @@ def cation_n_O(cation_name, atoms, cutoff=2.5):
 	Returns number of oxygens that are within cutoff of cation
 	Inputs:
 		cation_name - string of the name of the cation (assuming only one exist)
-		traj_name   - name of the xyz file or traj file
-		O           - list of oxygen indicies
+		atoms       - ase atoms object
 		cutoff      - cutoff ditance between oxygen and cation
+	Output:
+		O_Si	    - # of oxygen atoms next to Si
+		O_Al	    - # of oxygen atoms next to Al
+		distances   - distance of oxygen atoms to cation
 	'''
 
-	O, n = [], 0
+
+	O, O_Al, O_Si, distances =  [], 0,0,[]
 	atoms.write('tmp.xyz')
 
 	'neighbor list'
 	mol = Molecule.from_file('tmp.xyz')
-	os.system('rm tmp.xyz')
 	mol.set_default_masses()
 	mol.set_default_graph()
 	N_list = mol.graph.neighbors
@@ -35,10 +38,15 @@ def cation_n_O(cation_name, atoms, cutoff=2.5):
 			cation_index = atom.index
 			break
 
-	'find distance between cation and oxygen atoms neighboring Al'
-	for oxygen in O:
-		if atoms.get_distance(oxygen, cation_index) < cutoff:
-			n+=1
+	'find oxygens next to Si and Al'
+	for atom in atoms:
+		if atom.symbol == 'O':
+			d = atoms.get_distance(atom.index, cation_index) 
+			if d < cutoff:
+				distances.append(round(d,1))
+				if atom.index in O:
+					O_Al+=1
+				else:
+					O_Si+=1
 
-	return n
-
+	return O_Al, O_Si, distances

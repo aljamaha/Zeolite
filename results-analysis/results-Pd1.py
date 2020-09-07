@@ -13,7 +13,8 @@ Results Analysis
 'Inputs'
 plotting    	    = False		#if True, plot results for each reference structure
 sorted_plot	    = True		#if True, bar plots of energies is sorted from lowest to highest
-plt_ref_label	    = True		#if True, add label of the reference to the overall plot
+plt_ref_label	    = False		#if True, add label of the reference to the overall plot
+O_n                 = True		#if True, color code plot based on cation-O distance
 dir_Pd		    = 'BEA/Pd1/'		#name of dir where the calculations are saved
 dir_H		    = 'BEA/H/'	#name of directory where comensating protons are saved
 exchange	    = 'omega'
@@ -46,8 +47,9 @@ for ref in references:
 				references[ref].append(item)
 
 'accumulate traj files'
-Pd_H_d, Pd_H_d_all, minimum = [],[],{}	#saves minimum energy for each reference [minimum['3.traj'] = 22.traj]
-Al_distance, n_O,n = {},{},{}
+Pd_H_d, Pd_H_d_all, minimum, E_H_d = [],[],{},[]	#saves minimum energy for each reference [minimum['3.traj'] = 22.traj]
+Al_distance, n_O,n,oxygen_distances= {},{},{},{}
+O_Al,O_Si = {},{}
 for ref in references:
 
 	'loop over each reference'
@@ -74,14 +76,19 @@ for ref in references:
 					Al_distance[ref], n_Al = Al_Al(atoms)
 
 					'# of oxygens next to Al'
-					n[item] = cation_n_O('Pd',atoms,cutoff=3.05)
+					if O_n == True:
+						O_Al[item], O_Si[item], oxygen_distances[item] = cation_n_O('Pd',atoms,cutoff=2.51)
+						#atoms_tmp = io.read(calc_dir+data_output_entry+'/input.xyz')
+						#O_Al[item], O_Si[item], oxygen_distances[item] = cation_n_O('Pd',atoms_tmp,cutoff=2.51)
 
 					'O-O distance'
 					#O_O_distance = O_O(atoms, n_Al)
 					#O_d.append( round(O_O_distance,3) )
+
 					'Pd-H distance'	
 					#Pd_H_distance = Pd_H(atoms, n_Al)
 					#Pd_H_d.append( round(Pd_H_distance,3) )
+					#E_H_d.append(E)
 			except:
 				pass
 
@@ -109,14 +116,16 @@ for ref in references:
 			if plotting  == True:
 				plt.show()
 
-	'''
-		plt.plot(Pd_H_d, E, 'o', markersize=6)
-		plt.xlabel('Pd-H Distance (A)', fontsize = 10)
-		plt.ylabel('Energy (eV)', fontsize = 10)
-		for i, lab in enumerate(label):
-			plt.text(Pd_H_d[i], E[i], lab)
-		plt.show()
-	'''
+'''
+print(Pd_H_d)
+print(E_H_d)
+plt.plot(Pd_H_d, E_H_d, 'o', markersize=6)
+plt.xlabel('Pd-H Distance (A)', fontsize = 10)
+plt.ylabel('Energy (eV)', fontsize = 10)
+#for i, lab in enumerate(label):
+#	plt.text(Pd_H_d[i], E[i], lab)
+plt.show()
+'''
 
 '''Plot rxn energy [bar plot]'''
 E,E_label,ref_label, first_item = [],[],{}, True
@@ -149,6 +158,7 @@ for entry in minimum:
 				edge[entry]     = 'g'
 			else:
 				coloring[entry] = 'c'
+				edge[entry]     = 'c'
 			if data_original[entry]['N'] == 'NNN':
 				shade[entry] = '**'
 			else:
@@ -182,27 +192,46 @@ for index, item in enumerate(new_E):
 			plt.bar(x_pts[index], new_E[index],color=coloring[ref_label[new_x[index]]], linewidth=4,align='center', alpha=1)
 	'''
 
+	#print(name, O_Al[name], O_Si[name], oxygen_distances[name])
+
 	try:
 
-		#plt.bar(x_pts[index], new_E[index], color=coloring[ref], edgecolor='k', linewidth=4,align='center', alpha=1)
-		#plt.bar(x_pts[index], new_E[index], color=coloring[ref], hatch=shade[ref], align='center', alpha=0.9)	
-		if n[name] == 4:
-			plt.bar(x_pts[index], new_E[index], color='k', hatch=shade[ref], align='center', alpha=0.9)
-			print(new_x[index], n[name])
-		elif n[name] == 3:
-			plt.bar(x_pts[index], new_E[index], color='r', hatch=shade[ref], align='center', alpha=0.9)
-			print(new_x[index], n[name])
+		if O_n != True:
+			#plt.bar(x_pts[index], new_E[index], color=coloring[ref], edgecolor='k', linewidth=4,align='center', alpha=1)
+			plt.bar(x_pts[index], new_E[index], color=coloring[ref], hatch=shade[ref], align='center', alpha=0.9)	
 		else:
-			plt.bar(x_pts[index], new_E[index], color='b', hatch=shade[ref], align='center', alpha=0.9)
+			#if O_Al[name] + O_Si[name] == 4:
+			if O_Al[name] == 4:
+				plt.bar(x_pts[index], new_E[index], color='g', hatch=shade[ref], align='center', alpha=0.9)
+				#plt.bar(x_pts[index], new_E[index], color='k', hatch=shade[ref], edgecolor= edge[ref], align='center', alpha=0.9)
+				#print(new_x[index], n[name])
+			#elif O_Al[name] + O_Si[name] == 3:
+			elif O_Al[name] == 3:
+				plt.bar(x_pts[index], new_E[index], color='r', hatch=shade[ref], align='center', alpha=0.9)
+				#plt.bar(x_pts[index], new_E[index], color='c', hatch=shade[ref],  edgecolor= edge[ref], align='center', alpha=0.9)
+				#print(new_x[index], n[name])
+			#elif O_Al[name] + O_Si[name] == 2:
+			elif O_Al[name] == 2:
+				plt.bar(x_pts[index], new_E[index], color='b', hatch=shade[ref], align='center', alpha=0.9)
+			else:
+				print(O_Al[name] + O_Si[name])
+				plt.bar(x_pts[index], new_E[index], color='y', hatch=shade[ref], align='center', alpha=0.9)
+				#plt.bar(x_pts[index], new_E[index], color='y', hatch=shade[ref], edgecolor= edge[ref], align='center', alpha=0.9)
+
+		try:
+			plt.text(x_pts[index], np.max(new_E)+0.12, str(O_Si[name]),  color='k',rotation = 90, fontsize=12)
+		except:
+			pass
+
 		if plt_ref_label == True:
-			#plt.text(x_pts[index], min(new_E)-0.1, ref,  color='k',rotation = 90, fontsize=12)
-			plt.text(x_pts[index], min(new_E)+0.1, n_O[ref],  color='k',rotation = 90, fontsize=12)
+			plt.text(x_pts[index], min(new_E)-0.1, ref,  color='k',rotation = 90, fontsize=12)
+			#plt.text(x_pts[index], min(new_E)+0.1, n_O[ref],  color='k',rotation = 90, fontsize=12)
 	except:
 		print('Failed', name)
 		pass
 			
 
-
+print(new_x)
 plt.ylim([np.min(new_E)-0.1, np.max(new_E)+0.1])
 plt.xticks(x_pts, new_x, rotation = 90)
 plt.ylabel('Energy (eV)')
@@ -237,4 +266,3 @@ plt.xlim([3, 8])
 plt.xlabel('Al-Al distance (A)')
 plt.ylabel('Pd Rxn Energy (eV)')
 plt.show()
-
