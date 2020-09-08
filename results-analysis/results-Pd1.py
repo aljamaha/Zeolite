@@ -14,7 +14,7 @@ Results Analysis
 plotting    	    = False		#if True, plot results for each reference structure
 sorted_plot	    = True		#if True, bar plots of energies is sorted from lowest to highest
 plt_ref_label	    = False		#if True, add label of the reference to the overall plot
-O_n                 = True		#if True, color code plot based on cation-O distance
+O_n                 = False		#if True, color code plot based on cation-O distance
 dir_Pd		    = 'BEA/Pd1/'		#name of dir where the calculations are saved
 dir_H		    = 'BEA/H/'	#name of directory where comensating protons are saved
 exchange	    = 'omega'
@@ -47,7 +47,7 @@ for ref in references:
 				references[ref].append(item)
 
 'accumulate traj files'
-Pd_H_d, Pd_H_d_all, minimum, E_H_d = [],[],{},[]	#saves minimum energy for each reference [minimum['3.traj'] = 22.traj]
+Pd_H_d, Pd_H_d_all, minimum = {},[],{}	#saves minimum energy for each reference [minimum['3.traj'] = 22.traj]
 Al_distance, n_O,n,oxygen_distances= {},{},{},{}
 O_Al,O_Si = {},{}
 for ref in references:
@@ -86,9 +86,9 @@ for ref in references:
 					#O_d.append( round(O_O_distance,3) )
 
 					'Pd-H distance'	
-					#Pd_H_distance = Pd_H(atoms, n_Al)
-					#Pd_H_d.append( round(Pd_H_distance,3) )
-					#E_H_d.append(E)
+					Pd_H_distance = Pd_H(atoms, n_Al)
+					Pd_H_d[item] = Pd_H_distance
+
 			except:
 				pass
 
@@ -116,16 +116,8 @@ for ref in references:
 			if plotting  == True:
 				plt.show()
 
-'''
-print(Pd_H_d)
-print(E_H_d)
-plt.plot(Pd_H_d, E_H_d, 'o', markersize=6)
-plt.xlabel('Pd-H Distance (A)', fontsize = 10)
-plt.ylabel('Energy (eV)', fontsize = 10)
-#for i, lab in enumerate(label):
-#	plt.text(Pd_H_d[i], E[i], lab)
-plt.show()
-'''
+
+
 
 '''Plot rxn energy [bar plot]'''
 E,E_label,ref_label, first_item = [],[],{}, True
@@ -170,12 +162,9 @@ for entry in minimum:
 		#	#print('{} H calculations are incomplete'.format(entry))
 plt.clf()	#clear plot
 
+
 'Overall Pd Rxn energy plot'
 new_x, new_E, x_pts = sort(E_label, E)
-'''
-T_atom   = [1119, 1124, 1129, 1134, 1139, 1144, 1149, 1155, 1158]
-for T in T_atom:
-'''
 
 k = 0
 ref_list = []
@@ -230,13 +219,17 @@ for index, item in enumerate(new_E):
 		print('Failed', name)
 		pass
 			
-
-print(new_x)
 plt.ylim([np.min(new_E)-0.1, np.max(new_E)+0.1])
 plt.xticks(x_pts, new_x, rotation = 90)
 plt.ylabel('Energy (eV)')
 plt.show()
 plt.clf()
+
+'Pd-H distance plot'
+for index, item in enumerate(E_label):
+	#print(E_label[index], E[index], index)
+	plt.plot(Pd_H_d[str(item)+'.traj'], E[index],'ko')
+plt.show()
 
 print('ref list', ref_list)
 print('energies', new_E)
