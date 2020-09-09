@@ -7,6 +7,7 @@ from copy import deepcopy
 Functions complementary to results analysis
 '''
 
+
 def calc_index(index, data_output, exchange, calc_type):
 	'''
 	finds the entry in data_output and matches it to the item in data_original ['index']
