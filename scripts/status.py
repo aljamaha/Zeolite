@@ -19,6 +19,36 @@ cwd = os.getcwd()
 
 data = {}
 
+def diverged(cwd):
+	'determines if the calculation diverged'
+
+	status = True #assumes it did not diverge
+
+	os.chdir(cwd)
+	os.system('cat opt.out | grep "Energy change" > tmp')
+	lines = [line.rstrip('\n') for line in open('tmp')]
+	E, failures = [],0
+
+	for index, line in enumerate(lines):
+
+		try:
+			'extract energy change per line'
+			tmp = float(line[25:-20])
+			E.append(tmp)
+		except:
+			tmp = False
+
+		if tmp != False and index not in [0,1]:
+			'if there is an energy in the line (and not ***)'
+			diff = E[-1] - E[-2]
+			if diff < 0 and abs(diff) > 1e-5:
+				failures += 1
+
+	if failures > 20:
+		status = False
+
+	return status
+
 def folders_list(wd):
 	'list of folders in a directory'
 	os.chdir(wd)
@@ -120,7 +150,7 @@ def frozen_atoms():
 folders = folders_list(calc_dir)	#folders in calculations/directory
 running_jobs   = running_jobs_list()	#list of the running jobs
 restart, failed, not_sure, frozen, Running, completed, terminate, terminate_id = [],[],[],[],[],[],[],''
-scf_converge, not_started = [],[]
+scf_converge, not_started, diverge = [],[],[]
 
 for item in folders:
 	if 'def' in item:
@@ -144,7 +174,10 @@ for item in folders:
 			elif tmp_status == 'SCF failed to converge':
 				'SCF Failed to converge'
 				#print(item, '\t\tScf Failed to converge')
-				scf_converge.append(item)
+				if diverged(calc_dir+'/'+item) == False:
+					diverge.append(item)
+				else:
+					scf_converge.append(item)
 				data[item] = 'SCF failed to converge'
 			else:
 				try:	
@@ -180,11 +213,18 @@ for item in folders:
 					data[item] = 'Failed'
 					not_sure.append(item)
 
-print('******* Calculations require restart:', len(restart), restart)
-print('******* Frozen!:', len(frozen))
-print('******* Not started!:', not_started)
-print('******* Scf failed to converge!:', len(scf_converge))
-print('******* Terminate id:', terminate_id)
+if len(restart)>0:
+	print('******* Calculations require restart:', len(restart), restart)
+if len(frozen)>0:
+	print('******* Frozen!:', len(frozen), frozen)
+if len(not_started)>0:
+	print('******* Not started!:', len(not_started), not_started)
+print('******* Scf failed to converge!:',len(scf_converge),  scf_converge)
+if len(not_sure)>0:
+	print('******* Not sure!:', not_sure)
+if len(diverge)>0:
+	print('******* Diverge:', len(diverge), diverge)
+
 #print('*******\nMust terminate:', len(terminate), terminate)
 #print('*******\nRunning:', len(Running), Running)
 #print('Completed:', len(completed), completed)
