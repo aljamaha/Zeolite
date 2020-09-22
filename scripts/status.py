@@ -19,6 +19,15 @@ cwd = os.getcwd()
 
 data = {}
 
+def MR4(cwd):
+	'opt.out for 4MR have an added line of 4MR at the end'
+	tmp = False
+	os.chdir(cwd)
+	os.system('tail opt.out | grep 4MR > tmp_4MR')
+	if os.path.getsize('tmp_4MR') != 0:
+		tmp = True
+	return tmp
+
 def diverged(cwd):
 	'determines if the calculation diverged'
 
@@ -150,7 +159,7 @@ def frozen_atoms():
 folders = folders_list(calc_dir)	#folders in calculations/directory
 running_jobs   = running_jobs_list()	#list of the running jobs
 restart, failed, not_sure, frozen, Running, completed, terminate, terminate_id = [],[],[],[],[],[],[],''
-scf_converge, not_started, diverge = [],[],[]
+scf_converge, not_started, diverge, four_MR = [],[],[],[]
 
 for item in folders:
 	if 'def' in item:
@@ -158,7 +167,11 @@ for item in folders:
 			'Did not Start'
 			#print(item, '\t\t', 'Did not start') 
 			not_started.append(item)
-			data[item] = 'Did not start'
+			data[item] = 'Did not start'	
+		elif MR4(calc_dir+'/'+item) == True:
+			'initial condition of cation placed in 4 MR'
+			four_MR.append(item)
+			data[item] = '4MR'
 		elif comp(item) == True:
 			'completed calculations'
 			#print(item, '\t\t', 'Completed')
@@ -224,6 +237,8 @@ if len(not_sure)>0:
 	print('******* Not sure!:', not_sure)
 if len(diverge)>0:
 	print('******* Diverge:', len(diverge), diverge)
+if len(four_MR)>0:
+	print('******* 4MR', len(four_MR), four_MR)
 
 #print('*******\nMust terminate:', len(terminate), terminate)
 #print('*******\nRunning:', len(Running), Running)
