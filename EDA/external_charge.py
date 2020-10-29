@@ -25,11 +25,11 @@ mol.set_default_graph()			#derive a molecular graph based on geometry
 'charge dict'
 charge_dict = {}
 charge_dict[-1]  = -0.35     
-charge_dict[-22] =  0.35       
 charge_dict[-2]  = 0.7
-charge_dict[-3]  = -0.175      
-charge_dict[-23] =  0.525 
+charge_dict[-3]  = -0.175   
 charge_dict[-21] =  0.175
+charge_dict[-22] =  0.35
+charge_dict[-23] =  0.525
 
 'Identiy O-atoms (in MM region) connected to qm atoms'
 link_O = []
@@ -38,11 +38,10 @@ for i in mol.graph.neighbors:
 	if i in qm_atoms:
 		indexes = [n for n in mol.graph.neighbors[i]]
 		for j in range(0,len(indexes)):
-        	        if not indexes[j] in qm_atoms:
-                	   link_O.append(indexes[j])
+			if not indexes[j] in qm_atoms:
+				link_O.append(indexes[j])
 
 'Identify Si atoms attached to link_O in MM region'
-'[Si atoms connected to linking O atoms (atom type -23/-22/-21 depending on number of linking O atoms the Si atom is connected to)]'
 link_Si = []
 for i in mol.graph.neighbors:
 	'loop over all atoms in xyz input file'
@@ -70,10 +69,9 @@ for i in mol.graph.neighbors:
 
 	'print results'
 	if type != 0:
-		x = str(round(mol.coordinates[i][0]/angstrom,3))
-		y = str(round(mol.coordinates[i][1]/angstrom,3))
-		z = str(round(mol.coordinates[i][2]/angstrom,3))
+		if i not in link_O:
+			x = str(round(mol.coordinates[i][0]/angstrom,3))
+			y = str(round(mol.coordinates[i][1]/angstrom,3))
+			z = str(round(mol.coordinates[i][2]/angstrom,3))
 
-		print(x+'\t'+y+'\t'+z+'\t'+str(charge_dict[type]))
-
-
+			print(x+'\t'+y+'\t'+z+'\t'+str(charge_dict[type]))

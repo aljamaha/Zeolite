@@ -31,7 +31,6 @@ def restart(exchange, basis, scf_algo, scripts_dir, multiplicity, max_scf_cycles
 	with open("dir_data.json", "r") as read_file:
 		data = json.load(read_file)
 
-
 	os.system('cp '+scripts_dir+'/convert-qchem-output-to-ase.py .')
 	os.system('python convert-qchem-output-to-ase.py '+str(data["QMMM length"]))
 	os.system('python external_charge.py > tmp')
@@ -51,7 +50,6 @@ def rem_section(exchange, basis, multiplicity, max_scf_cycles, THRESH, scf_algo,
 	f.write('eda2\t2\n')
 	f.write('exchange   '+exchange+'\n')
 	f.write('basis   \t'+basis+'\n')
-	f.write('unrestricted false\n')
 	f.write('max_scf_cycles  '+max_scf_cycles+'\n')         
 	if THRESH != None:
 		f.write('THRESH\t'+THRESH+'\n')
@@ -67,7 +65,6 @@ def rem_section(exchange, basis, multiplicity, max_scf_cycles, THRESH, scf_algo,
 	f.write('geom_opt_dmax   80\n')
 	f.write('pop_mulliken false\n')
 	f.write('scf_print_frgm true\n')
-	f.write('SCF_PRINT_FRGM TRUE\n')
 	f.write('$end\n\n')
 
 def molecules_section(multiplicity, f):
@@ -88,10 +85,10 @@ def external_charges(f):
 	f.write('$end')
 
 exchange 	 = 'omegab97x-d'
-basis    	 = 'def2-sv(p)'
+basis    	 = 'def2-tzvpd'
 scf_algo	 = 'diis_gdm'
 scripts_dir      = '/home/aljama/BEA/original/scripts/'
 multiplicity     = '1'
-max_scf_cycles   = '100'
+max_scf_cycles   = '150'
 THRESH		 = '12'
 restart(exchange, basis, scf_algo,  scripts_dir, multiplicity, max_scf_cycles, THRESH=THRESH)
