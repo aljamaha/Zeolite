@@ -1,10 +1,12 @@
 import json, os
+from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 from ase import atoms, io
 from copy import deepcopy
 from functions import *
 import numpy as np
 from oxygen_stable import *
+import matplotlib.font_manager as font_manager
 
 '''
 Results Analysis
@@ -16,22 +18,28 @@ sorted_plot	    = True		#if True, bar plots of energies is sorted from lowest to
 plt_ref_label	    = False		#if True, add label of the reference to the overall plot
 O_n                 = False		#if True, color code plot based on cation-O distance
 dir_Pd		    = 'BEA/Pd2'		#name of dir where the calculations are saved
-dir_H		    = 'BEA/H'	#name of directory where comensating protons are saved
+dir_H		    = 'BEA/H'		#name of directory where comensating protons are saved
 exchange	    = 'omega'
 calc_type	    = 'sp' 		#opt or sp
+renamed		    = False		#renamed from calc. name to new database name
+zeolite		    = 'BEA'
 
 'Directory names'
 data_dir    = '/home/aljama/'+dir_Pd+'/data/'			#dir where json data are saved
 calc_dir    = '/home/aljama/'+dir_Pd+'/calculations/'		#dir where calculations are done
 results_dir = '/home/aljama/'+dir_Pd+'/results-analysis/' 	#dir where results are to be saved
 H_data      = '/home/aljama/'+dir_H+'/data/'			#dir where data for H adsorptions sites are saved
-candidates  = []						#run hGGA calc on those
+candidates,top5  = [],[]						#run hGGA calc on those
 
 'Load data from json files'
 with open(data_dir+"data_output.json", "r") as read_file:
     data_output = json.load(read_file)
 with open(data_dir+"data.json", "r") as read_file:
     data_original = json.load(read_file)
+
+'Load new names in database'
+with open("/home/aljama/rename_data/"+zeolite+'/'+dir_Pd[-3:]+"_rename.json", "r") as read_file:
+    rename = json.load(read_file)
 
 'accumulate reference entries (templates from which calculations were created and run)'
 references = {} #references for data
@@ -98,7 +106,9 @@ for ref in references:
 		if len(E) >0: #avoid references not calculated yet
 			'bar plot (sorted)'
 			new_x, new_E, x_pts = sort(x_pos, E)
-			print(ref, len(new_x), new_x[0:13])
+			print(ref, len(new_x), new_x[0:5])
+			for n in new_x[0:5]:
+				top5.append(n)
 			plt.bar(x_pts, new_E, align='center', alpha=1)
 			plt.xticks(x_pts, new_x)
 			plt.ylabel('Energy (eV)')
@@ -120,7 +130,7 @@ for ref in references:
 
 
 'complete traj list'
-full_list = ['2.traj', '3.traj', '4.traj', '5.traj', '6.traj', '7.traj', '8.traj', '9.traj', '10.traj', '11.traj', '12.traj', '14.traj', '17.traj', '42.traj', '18.traj', '20.traj', '21.traj', '22.traj', '25.traj', '26.traj', '27.traj', '28.traj', '43.traj', '36.traj', '39.traj', '41.traj', '42.traj', '43.traj', '44.traj', '54.traj', '56.traj', '58.traj', '63.traj', '64.traj', '65.traj', '67.traj', '69.traj', '71.traj', '76.traj', '78.traj', '80.traj', '84.traj', '85.traj', '87.traj', '95.traj', '98.traj', '99.traj', '100.traj', '101.traj', '120.traj', '127.traj', '130.traj', '131.traj', '132.traj', '134.traj', '148.traj', '150.traj', '158.traj', '162.traj', '163.traj', '165.traj', '167.traj', '186.traj', '195.traj', '200.traj', '204.traj', '206.traj', '210.traj', '211.traj', '212.traj', '234.traj', '30.traj', '88.traj', '265.traj']
+full_list = ['2.traj', '3.traj', '4.traj', '5.traj', '6.traj', '7.traj', '8.traj', '9.traj', '10.traj', '11.traj', '12.traj', '14.traj', '17.traj', '42.traj', '18.traj', '20.traj', '21.traj', '22.traj', '25.traj', '26.traj', '27.traj', '28.traj', '43.traj', '36.traj', '39.traj', '41.traj',  '43.traj', '44.traj', '54.traj', '56.traj', '58.traj', '63.traj', '64.traj', '65.traj', '67.traj', '69.traj', '71.traj', '76.traj', '78.traj', '80.traj', '84.traj', '85.traj', '87.traj', '95.traj', '98.traj', '99.traj', '100.traj', '101.traj', '120.traj', '127.traj', '130.traj', '131.traj', '132.traj', '134.traj', '148.traj', '150.traj', '158.traj', '162.traj', '163.traj', '165.traj', '167.traj', '186.traj', '195.traj', '200.traj', '204.traj', '206.traj', '210.traj', '211.traj', '212.traj', '234.traj', '30.traj', '88.traj', '265.traj']
 
 '''Plot rxn energy [bar plot]'''
 E,E_label,ref_label, first_item = [],[],{}, True
@@ -148,39 +158,32 @@ for entry in minimum:
 				coloring[entry] = 'y'
 				edge[entry]     = 'y'
 			elif data_original[entry]['Al-Al MR'] == [5,5]:
-				coloring[entry] = 'r'
-				edge[entry]     = 'r'
-			elif data_original[entry]['Al-Al MR'] == [6,6]:
 				coloring[entry] = 'b'
 				edge[entry]     = 'b'
+			elif data_original[entry]['Al-Al MR'] == [6,6]:
+				coloring[entry] = 'r'
+				edge[entry]     = 'r'
 			elif data_original[entry]['Al-Al MR'] == [4,4]:
+				coloring[entry] = 'gray'
+				edge[entry]     = 'gray'
+			else:
 				coloring[entry] = 'g'
 				edge[entry]     = 'g'
-			else:
-				coloring[entry] = 'c'
-				edge[entry]     = 'c'
 			if data_original[entry]['N'] == 'NNN':
-				shade[entry] = '**'
+				shade[entry] = 'w//'
 			else:
 				shade[entry] = ''
 			if entry not in completed_traj:
 				completed_traj.append(entry)
-			#if data_original[entry]['Al MR']['4']>2:
-			#	MR4[entry] = True
 					
-		#else:
-		#	#print('{} H calculations are incomplete'.format(entry))
 plt.clf()	#clear plot
 
-
 'References not yet completed:'
-#print('completed traj:', len(completed_traj), completed_traj)
 not_yet = []
 for item in full_list:
 	if item not in completed_traj:
 		if item not in not_yet:
 			not_yet.append(item)
-print('not yet completed', len(not_yet), not_yet)
 
 'Overall Pd Rxn energy plot'
 new_x, new_E, x_pts = sort(E_label, E)
@@ -193,24 +196,15 @@ for index, item in enumerate(new_E):
 	ref_list.append(ref)
 	name = str(new_x[index])+'.traj'
 
-	'''
-		if ref in data_T[str(T)]:
-			plt.bar(x_pts[index], new_E[index],color=coloring[ref_label[new_x[index]]], edgecolor='k', linewidth=4,align='center', alpha=1)	
-		else:
-			plt.bar(x_pts[index], new_E[index],color=coloring[ref_label[new_x[index]]], linewidth=4,align='center', alpha=1)
-	'''
-
-	#print(name, O_Al[name], O_Si[name], oxygen_distances[name])
-
 	try:
 
 		if O_n != True:
 			#plt.bar(x_pts[index], new_E[index], color=coloring[ref], edgecolor='k', linewidth=4,align='center', alpha=1)
-			plt.bar(x_pts[index], new_E[index], color=coloring[ref], hatch=shade[ref], align='center', alpha=0.9)	
+			plt.bar(x_pts[index], new_E[index], color=coloring[ref],edgecolor='k', hatch=shade[ref], align='center', alpha=0.9)	
 		else:
 			#if O_Al[name] + O_Si[name] == 4:
 			if int(O_Al[name]) == 4:
-				plt.bar(x_pts[index], new_E[index], color='g', hatch=shade[ref], align='center', alpha=0.9)
+				plt.bar(x_pts[index], new_E[index], color='c', hatch=shade[ref], align='center', alpha=0.9)
 				#plt.bar(x_pts[index], new_E[index], color='k', hatch=shade[ref], edgecolor= edge[ref], align='center', alpha=0.9)
 				#print(new_x[index], n[name])
 			#elif O_Al[name] + O_Si[name] == 3:	
@@ -238,22 +232,55 @@ for index, item in enumerate(new_E):
 	except:
 		print('Failed', name)
 		pass
-			
-
-#print(ref_list)
 
 plt.ylim([np.min(new_E)-0.1, np.max(new_E)+0.1])
-plt.xticks(x_pts, new_x, rotation = 90)
-plt.ylabel('Energy (eV)')
-#plt.savefig('Pd1.pdf')
-#print(x_pts)
-print('calc names',new_x)
-print('calc energies', new_E)
-plt.show()
-plt.clf()
 
-#print('Pd_H_d', Pd_H_d)
-#print('Coloring', coloring)
+'choice of x-axis label'
+renamed_new_x = []
+if renamed == True:
+	for item in new_x:
+		for new_name in rename:
+			if str(item) == str(new_name[0:new_name.find('-')]):
+				if 'Pd2' in dir_Pd:
+					new = rename[new_name].replace('Pd+2','Pd$^{+2}$')
+				elif 'Pd1' in dir_Pd:
+					new = rename[new_name].replace('Pd+','Pd$^+$')
+					new = new.replace('H+','H$^+$')
+				#renamed_new_x.append(rename[new_name])
+				renamed_new_x.append(new)
+	plt.xticks(x_pts, renamed_new_x, rotation = 90,fontsize=12, ha='left')
+else:
+	plt.xticks(x_pts, new_x, rotation = 90, fontsize=12)
+
+
+plt.xlim(x_pts[0]-0.5, x_pts[-1]+0.5)
+print('Total # of structures', len(x_pts))
+plt.subplots_adjust(bottom=0.15)
+plt.ylabel('E$\mathrm{_{Pd}}$ (eV)', fontsize=18)
+#plt.ylabel(r'E$_{Pd}$ (eV)'+r'\mathrm{_{Pd}}', fontsize=18)
+plt.tick_params(axis='y', labelsize=14)
+#plt.savefig('Pd1.pdf')
+#print('calc names',new_x)
+#print('calc energies', new_E)
+plt.rcParams["font.family"] = "Times New Roman"
+
+font = font_manager.FontProperties(family='serif', size=16)
+if 'Pd2' in dir_Pd:
+	custom_lines = [Line2D([0], [0], color='gray', lw=4),
+                	Line2D([0], [0], color='b', lw=4),
+                	Line2D([0], [0], color='r', lw=4),
+                	Line2D([0], [0], color='g', lw=4),]
+	plt.legend(custom_lines, ['Al pairs in 4MR', 'Al pairs in 5MR', 'Al pairs in 6MR','Al pairs not in same MR'], loc=7, prop=font) #fontsize=16)
+elif 'Pd1' in dir_Pd:	
+	custom_lines = [Line2D([0], [0], color='gray', lw=4),
+                	Line2D([0], [0], color='b', lw=4),
+                	Line2D([0], [0], color='r', lw=4),
+                	Line2D([0], [0], color='g', lw=4),
+                	Line2D([0], [0], color='y', lw=4)]
+	plt.legend(custom_lines, ['Al pairs in 4MR', 'Al pairs in 5MR', 'Al pairs in 6MR','Al pairs not in same MR','Isolated Al'], loc=7, prop=font) #fontsize=16)
+plt.show()
+
+plt.clf()
 
 'Pd-H distance plot'
 for index, item in enumerate(E_label):
@@ -267,9 +294,6 @@ for index, item in enumerate(E_label):
 plt.xlabel('Pd-H distance (A)', fontsize=12)
 plt.ylabel('Pd Adsorption Energy (eV)', fontsize=12)
 #plt.show()
-
-#print('ref list', ref_list)
-#print('energies', new_E)
 
 'Al-Al Distance'
 for index, item in enumerate(new_E):
@@ -296,3 +320,5 @@ plt.xlim([3, 8])
 plt.xlabel('Al-Al distance (A)')
 plt.ylabel('Pd Rxn Energy (eV)')
 #plt.show()
+
+#print('Top 5 aggregated structures:', top5)
